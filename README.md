@@ -1,6 +1,10 @@
 # kyosei-action
 
-GitHub Action for [kyosei](https://github.com/ncaq/konoka/tree/master/plugins/kyosei) code review from [konoka](https://github.com/ncaq/konoka) marketplace.
+GitHub Action for
+[kyosei](https://github.com/ncaq/konoka/tree/master/plugins/kyosei)
+code review from
+[konoka](https://github.com/ncaq/konoka)
+marketplace.
 
 Kyosei is a multi-perspective AI code review plugin that analyzes pull requests
 for code quality, performance, security, test coverage, and documentation accuracy.
