@@ -6,8 +6,8 @@ on:
     # on the same revision from ready_for_review or reopened events.
     types: [opened, synchronize]
 
-# The reusable workflow sets its own permissions, but the caller
-# must also declare them or zizmor will warn about excessive permissions.
+# Reusable workflows are constrained by the caller's permissions,
+# so they must be explicitly declared here.
 permissions:
   checks: read
   contents: read
