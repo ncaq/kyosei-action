@@ -24,10 +24,15 @@ inputs:
   github_token:
     description: GitHub token with repo and pull request permissions (optional if using GitHub App)
     required: false
+  # botだからといって人間のコミットと危険性は特に変わらないはずなので、
+  # デフォルトで全て許可しています。
   allowed_bots:
     description: Comma-separated list of allowed bot usernames, or '*' to allow all bots
     required: false
     default: "*"
+  # エージェントが使いそうなツールを広く列挙しています。
+  # MCPでうまくインラインコメントが取得できないときもあるのでgh apiも許可しています。
+  # 考慮しすぎるとキリがないので割り切ってある程度Claude Codeを信用して広く許可しています。
   allowed_tools:
     description: Allowed tools for Claude Code (newline-separated, replaces default set)
     required: false
