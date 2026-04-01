@@ -94,16 +94,12 @@ on:
         description: Anthropic API key (alternative to OAuth token)
         required: false
 
+# Claude GitHub App manages its own token, so only minimal permissions are needed.
+# If the caller passes github_token explicitly, additional permissions
+# (e.g. pull-requests: write) must be granted by the caller.
 permissions:
-  checks: read # Reference CI results
-  contents: read # Read repository contents for review
-  discussions: read # Reference discussions
-  id-token: write # Required for Claude Code Action
-  issues: read # Reference issues
-  pages: read # Reference existing documentation
-  pull-requests: write # Post review comments on PRs
-  repository-projects: read # Reference project schedules
-  security-events: read # Reference vulnerability reports
+  contents: read # Read repository contents for checkout
+  id-token: write # Required for Claude Code Action OIDC authentication
 
 jobs:
   kyosei:
