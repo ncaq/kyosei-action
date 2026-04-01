@@ -159,49 +159,7 @@ runs:
           exit 1
         fi
 
-    # Check pull-requests:write permission on the explicitly provided github_token.
-    # GitHub often restricts token permissions for security reasons,
-    # e.g. when workflow files are modified in a PR. Detect this early.
-    #
-    # When github_token is omitted, claude-code-action uses Claude GitHub App
-    # which manages its own token, so we skip this check entirely.
-    #
-    # There is no API endpoint to query individual GITHUB_TOKEN permissions,
-    # so we create a pending review and immediately delete it.
-    # Pending reviews are invisible to other users until submitted.
-    # This requires pull-requests:write, which is exactly what we need to verify.
-    - name: Check GitHub token permissions
-      if: inputs.github_token != ''
-      id: check-token
-      shell: bash
-      env:
-        GH_TOKEN: ${{ inputs.github_token }}
-        REPO: ${{ github.repository }}
-        PR_NUMBER: ${{ github.event.pull_request.number }}
-      run: |
-        if [[ -z "$PR_NUMBER" ]]; then
-          echo "skip=true" >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
-
-        endpoint="repos/$REPO/pulls/$PR_NUMBER/reviews"
-
-        if review_id=$(gh api "$endpoint" \
-          -X POST --jq '.id' 2>/dev/null)
-        then
-          gh api "$endpoint/$review_id" \
-            -X DELETE 2>/dev/null || true
-        else
-          msg="GITHUB_TOKEN lacks pull-requests:write."
-          msg+=" Review comments will not be posted."
-          msg+=" Common causes: workflow file changes"
-          msg+=" in this PR, or fork PRs."
-          echo "::warning::$msg"
-          echo "skip=true" >> "$GITHUB_OUTPUT"
-        fi
-
     - name: Build allowed tools list
-      if: steps.check-token.outputs.skip != 'true'
       id: build-allowed-tools
       shell: bash
       env:
@@ -215,8 +173,8 @@ runs:
         echo "joined=$joined" >> "$GITHUB_OUTPUT"
 
     - name: Run Kyosei
-      if: steps.check-token.outputs.skip != 'true'
       id: claude-review
+      continue-on-error: true
       uses: anthropics/claude-code-action@88c168b39e7e64da0286d812b6e9fbebb6708185 # v1.0.82
       with:
         claude_code_oauth_token: ${{ inputs.claude_code_oauth_token }}
@@ -233,3 +191,12 @@ runs:
           --model "${{ inputs.model }}"
           --allowed-tools "${{ steps.build-allowed-tools.outputs.joined }}"
           ${{ inputs.claude_args }}
+
+    # If claude-code-action fails, emit a warning instead of failing the workflow.
+    # Common causes: insufficient token permissions (e.g. workflow file changes
+    # in the PR, fork PRs) or transient API errors.
+    - name: Handle failure
+      if: steps.claude-review.outcome == 'failure'
+      shell: bash
+      run: |
+        echo "::warning::Kyosei failed. This may be due to insufficient token permissions (e.g. workflow file changes in this PR, or fork PRs) or a transient error. Skipping."
