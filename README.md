@@ -12,8 +12,9 @@ Composite Actionはローレイヤーな部品で、
 
 ## Reusable Workflow
 
-Handles checkout, permissions, and timeout internally,
-so the caller only needs minimal configuration.
+Handles checkout and timeout internally.
+Permissions must be declared by the caller
+since the reusable workflow is constrained by the caller's permissions.
 
 ```yaml
 name: Kyosei
@@ -21,6 +22,17 @@ name: Kyosei
 on:
   pull_request:
     types: [opened, synchronize]
+
+permissions:
+  checks: read
+  contents: read
+  discussions: read
+  id-token: write
+  issues: read
+  pages: read
+  pull-requests: write
+  repository-projects: read
+  security-events: read
 
 jobs:
   kyosei:
