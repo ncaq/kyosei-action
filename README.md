@@ -129,11 +129,11 @@ jobs:
 | `claude_code_oauth_token`  | Claude Code OAuth token                                 | No       |                                      |
 | `anthropic_api_key`        | Anthropic API key (alternative to OAuth token)          | No       |                                      |
 | `model`                    | Claude model to use                                     | No       | `opus[1m]`                           |
-| `github_token`             | GitHub token (optional if using GitHub App)             | No       |                                      |
+| `github_token`             | GitHub token (optional if using GitHub App)             | No       | `${{ github.token }}`                |
 | `allowed_bots`             | Allowed bot usernames or `*` for all                    | No       | `*`                                  |
 | `allowed_tools`            | Allowed tools (newline-separated, replaces default set) | No       | See below                            |
-| `additional_allowed_tools` | Additional tools to append (newline-separated)          | No       |                                      |
-| `claude_args`              | Additional CLI arguments                                | No       |                                      |
+| `additional_allowed_tools` | Additional tools to append (newline-separated)          | No       | `""`                                 |
+| `claude_args`              | Additional CLI arguments                                | No       | `""`                                 |
 | `use_bedrock`              | Use Amazon Bedrock with OIDC                            | No       | `false`                              |
 | `use_vertex`               | Use Google Vertex AI with OIDC                          | No       | `false`                              |
 | `use_foundry`              | Use Microsoft Foundry with OIDC                         | No       | `false`                              |
