@@ -26,9 +26,12 @@ inputs:
 
   # Claude Code Action pass-through
   github_token:
-    description: GitHub token with repo and pull request permissions (optional if using GitHub App)
+    description: >-
+      GitHub token for API access.
+      If omitted, claude-code-action uses Claude GitHub App token (claude[bot]).
+      Provide explicitly to use a custom token or github.token instead.
     required: false
-    default: ${{ github.token }}
+    default: ""
   allowed_bots:
     description: >-
       Comma-separated list of allowed bot usernames, or '*' to allow all bots.
@@ -168,7 +171,10 @@ runs:
       id: check-token
       shell: bash
       env:
-        GH_TOKEN: ${{ inputs.github_token }}
+        # Permission check needs a token even when github_token is omitted
+        # (in which case claude-code-action uses Claude GitHub App instead).
+        # Fall back to the workflow-provided github.token for this step only.
+        GH_TOKEN: ${{ inputs.github_token || github.token }}
         REPO: ${{ github.repository }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
@@ -214,7 +220,7 @@ runs:
       with:
         claude_code_oauth_token: ${{ inputs.claude_code_oauth_token }}
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
-        github_token: ${{ inputs.github_token }}
+        github_token: ${{ inputs.github_token }} # Pass as-is (empty means claude-code-action uses Claude GitHub App token).
         use_bedrock: ${{ inputs.use_bedrock }}
         use_vertex: ${{ inputs.use_vertex }}
         use_foundry: ${{ inputs.use_foundry }}
