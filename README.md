@@ -117,7 +117,7 @@ jobs:
 | `claude_code_oauth_token`  | Claude Code OAuth token                                 | No       |                                      |
 | `anthropic_api_key`        | Anthropic API key (alternative to OAuth token)          | No       |                                      |
 | `model`                    | Claude model to use                                     | No       | `opus[1m]`                           |
-| `custom_github_token`             | GitHub token (omit to use Claude GitHub App)            | No       | `""`                                 |
+| `custom_github_token`      | GitHub token (omit to use Claude GitHub App)            | No       | `""`                                 |
 | `allowed_bots`             | Allowed bot usernames or `*` for all                    | No       | `*`                                  |
 | `allowed_tools`            | Allowed tools (newline-separated, replaces default set) | No       | See below                            |
 | `additional_allowed_tools` | Additional tools to append (newline-separated)          | No       | `""`                                 |
