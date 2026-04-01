@@ -65,15 +65,8 @@ on:
 # Reusable workflows are constrained by the caller's permissions,
 # so they must be explicitly declared here.
 permissions:
-  checks: read # Reference CI results
-  contents: read # Read repository contents for review
-  discussions: read # Reference discussions
-  id-token: write # Required for Claude Code Action
-  issues: read # Reference issues
-  pages: read # Reference existing documentation
-  pull-requests: write # Post review comments on PRs
-  repository-projects: read # Reference project schedules
-  security-events: read # Reference vulnerability reports
+  contents: read # Read repository contents for checkout
+  id-token: write # Required for Claude Code Action OIDC authentication
 
 jobs:
   kyosei:
@@ -83,8 +76,7 @@ jobs:
 ```
 
 Most Composite Action inputs can be passed via `with:`.
-The Reusable Workflow additionally accepts `fetch-depth` and `timeout-minutes`,
-but does not expose `github_token` (it manages checkout and tokens internally).
+The Reusable Workflow additionally accepts `fetch-depth` and `timeout-minutes`.
 See the Composite Action section below for the full input list.
 
 ## Composite Action
@@ -101,15 +93,8 @@ on:
     types: [opened, synchronize]
 
 permissions:
-  checks: read # Reference CI results
-  contents: read # Read repository contents for review
-  discussions: read # Reference discussions
-  id-token: write # Required for Claude Code Action
-  issues: read # Reference issues
-  pages: read # Reference existing documentation
-  pull-requests: write # Post review comments on PRs
-  repository-projects: read # Reference project schedules
-  security-events: read # Reference vulnerability reports
+  contents: read # Read repository contents for checkout
+  id-token: write # Required for Claude Code Action OIDC authentication
 
 jobs:
   review:
@@ -182,34 +167,17 @@ To add tools without replacing the defaults, use `additional_allowed_tools`:
 
 ## Permissions
 
-The following permissions are required:
+When `github_token` is omitted (default), Claude GitHub App manages its own token,
+so the workflow only needs minimal permissions:
 
 ```yaml
 permissions:
-  checks: read # Reference CI results
-  contents: read # Read repository contents for review
-  discussions: read # Reference discussions
-  id-token: write # Required for Claude Code Action
-  issues: read # Reference issues
-  pages: read # Reference existing documentation
-  pull-requests: write # Post review comments on PRs
-  repository-projects: read # Reference project schedules
-  security-events: read # Reference vulnerability reports
+  contents: read # Read repository contents for checkout
+  id-token: write # Required for Claude Code Action OIDC authentication
 ```
 
-The minimum permissions required to run are:
-
-```yaml
-permissions:
-  contents: read
-  id-token: write
-  pull-requests: write
-```
-
-The other permissions allow the review agent to reference
-additional context (CI results, issues, discussions, etc.)
-for better review quality.
-
+If you explicitly pass `github_token`, the token needs additional permissions
+such as `pull-requests: write` for posting review comments.
 If the token lacks `pull-requests: write`
 (e.g. due to workflow file changes in the PR or fork PRs),
 the action will skip gracefully with a warning instead of failing.
