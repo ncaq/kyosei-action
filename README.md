@@ -82,8 +82,10 @@ jobs:
       claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
 
-All Composite Action inputs can be passed via `with:`.
-See the Composite Action section below for details.
+Most Composite Action inputs can be passed via `with:`.
+The Reusable Workflow additionally accepts `fetch-depth` and `timeout-minutes`,
+but does not expose `github_token` (it manages checkout and tokens internally).
+See the Composite Action section below for the full input list.
 
 ## Composite Action
 
