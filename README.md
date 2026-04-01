@@ -10,9 +10,15 @@ Composite Actionはローレイヤーな部品で、
 呼び出し側でcheckoutやpermissionsの設定が必要です。
 より簡単に使いたい場合はReusable Workflowの利用を推奨します。
 
+## Reusable Workflow
+
+TBD
+
 ## Composite Action
 
 ### Usage
+
+セキュリティのため、コミットハッシュでのピン留めを推奨します。
 
 ```yaml
 name: Kyosei
@@ -35,7 +41,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 50
-      - uses: ncaq/kyosei-action@v1
+      - uses: ncaq/kyosei-action@<commit-hash> # v1.0.0
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
@@ -88,7 +94,7 @@ allowed_tools: |
 To add tools without replacing the defaults, use `additional_allowed_tools`:
 
 ```yaml
-- uses: ncaq/kyosei-action@v1
+- uses: ncaq/kyosei-action@<commit-hash> # v1.0.0
   with:
     claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
     additional_allowed_tools: |
