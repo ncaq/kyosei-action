@@ -156,8 +156,9 @@ runs:
     # e.g. when workflow files are modified in a PR. Detect this early.
     #
     # There is no API endpoint to query individual GITHUB_TOKEN permissions,
-    # so we add an "eyes" reaction to the PR and immediately delete it.
-    # Success means write access; failure means no write access.
+    # so we create a pending review and immediately delete it.
+    # Pending reviews are invisible to other users until submitted.
+    # This requires pull-requests:write, which is exactly what we need to verify.
     - name: Check GitHub token permissions
       id: check-token
       shell: bash
@@ -171,12 +172,12 @@ runs:
           exit 0
         fi
 
-        endpoint="repos/$REPO/issues/$PR_NUMBER/reactions"
+        endpoint="repos/$REPO/pulls/$PR_NUMBER/reviews"
 
-        if reaction_id=$(gh api "$endpoint" \
-          -X POST -f content=eyes --jq '.id' 2>/dev/null)
+        if review_id=$(gh api "$endpoint" \
+          -X POST --jq '.id' 2>/dev/null)
         then
-          gh api "$endpoint/$reaction_id" \
+          gh api "$endpoint/$review_id" \
             -X DELETE 2>/dev/null || true
         else
           msg="GITHUB_TOKEN lacks pull-requests:write."
