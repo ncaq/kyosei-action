@@ -1,0 +1,28 @@
+name: Kyosei
+
+on:
+  pull_request:
+    # デフォルトのイベントにはready_for_reviewとreopenedが含まれますが、
+    # synchronizeイベントによって既にレビューを受けているのに、
+    # 別のイベントで同じリビジョンに対して再度レビューが発生するのを避けるため、
+    # openedとsynchronizeだけにしています。
+    types: [opened, synchronize]
+
+# Reusable Workflow側でpermissionsを設定しているが、
+# 呼び出し側でも明示しないとzizmorが警告する。
+permissions:
+  checks: read
+  contents: read
+  discussions: read
+  id-token: write
+  issues: read
+  pages: read
+  pull-requests: write
+  repository-projects: read
+  security-events: read
+
+jobs:
+  kyosei:
+    uses: ./.github/workflows/review.yml
+    secrets:
+      claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
