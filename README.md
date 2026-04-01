@@ -77,7 +77,7 @@ permissions:
 
 jobs:
   kyosei:
-    uses: ncaq/kyosei-action/.github/workflows/review.yml@<commit-hash> # v1.0.0
+    uses: ncaq/kyosei-action/.github/workflows/review.yml@2c9737dca963d78c7307db1967e52875621b29e1 # v0.1.0
     secrets:
       claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
@@ -120,7 +120,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 50
-      - uses: ncaq/kyosei-action@<commit-hash> # v1.0.0
+      - uses: ncaq/kyosei-action@2c9737dca963d78c7307db1967e52875621b29e1 # v0.1.0
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
@@ -165,7 +165,7 @@ allowed_tools: |
 To add tools without replacing the defaults, use `additional_allowed_tools`:
 
 ```yaml
-- uses: ncaq/kyosei-action@<commit-hash> # v1.0.0
+- uses: ncaq/kyosei-action@2c9737dca963d78c7307db1967e52875621b29e1 # v0.1.0
   with:
     claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
     additional_allowed_tools: |
