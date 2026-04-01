@@ -25,11 +25,12 @@ inputs:
     default: "opus[1m]"
 
   # Claude Code Action pass-through
-  github_token:
+  custom_github_token:
     description: >-
       GitHub token for API access.
       If omitted, claude-code-action uses Claude GitHub App token (claude[bot]).
       Provide explicitly to use a custom token or github.token instead.
+      Named custom_github_token to avoid the reserved github_token input name.
     required: false
     default: ""
   allowed_bots:
@@ -179,7 +180,7 @@ runs:
       with:
         claude_code_oauth_token: ${{ inputs.claude_code_oauth_token }}
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
-        github_token: ${{ inputs.github_token }} # Pass as-is (empty means claude-code-action uses Claude GitHub App token).
+        github_token: ${{ inputs.custom_github_token }} # Pass as-is (empty means claude-code-action uses Claude GitHub App token).
         use_bedrock: ${{ inputs.use_bedrock }}
         use_vertex: ${{ inputs.use_vertex }}
         use_foundry: ${{ inputs.use_foundry }}
