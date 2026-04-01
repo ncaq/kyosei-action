@@ -2,14 +2,12 @@ name: Kyosei
 
 on:
   pull_request:
-    # デフォルトのイベントにはready_for_reviewとreopenedが含まれますが、
-    # synchronizeイベントによって既にレビューを受けているのに、
-    # 別のイベントで同じリビジョンに対して再度レビューが発生するのを避けるため、
-    # openedとsynchronizeだけにしています。
+    # Only opened and synchronize to avoid duplicate reviews
+    # on the same revision from ready_for_review or reopened events.
     types: [opened, synchronize]
 
-# Reusable Workflow側でpermissionsを設定しているが、
-# 呼び出し側でも明示しないとzizmorが警告する。
+# The reusable workflow sets its own permissions, but the caller
+# must also declare them or zizmor will warn about excessive permissions.
 permissions:
   checks: read
   contents: read
