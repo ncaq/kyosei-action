@@ -124,7 +124,7 @@ runs:
           errors+=("Only one cloud provider (use_bedrock, use_vertex, use_foundry) can be enabled at a time.")
         fi
 
-        # Marketplace URLは.gitで終わる必要がある(claude-code-actionの制約)。
+        # Marketplace URL must end with .git (required by claude-code-action).
         if [[ -n "$KONOKA_MARKETPLACE_URL" && "$KONOKA_MARKETPLACE_URL" != *.git ]]; then
           errors+=("konoka_marketplace_url must end with '.git': $KONOKA_MARKETPLACE_URL")
         fi
@@ -151,15 +151,13 @@ runs:
           exit 1
         fi
 
-    # GITHUB_TOKENのpull-requests:write権限チェック。
-    # PRでワークフローファイルを変更した場合など、
-    # GitHubがセキュリティ上トークンの権限を制限することがよくあるため、
-    # 早期に検出して警告します。
+    # Check pull-requests:write permission on GITHUB_TOKEN.
+    # GitHub often restricts token permissions for security reasons,
+    # e.g. when workflow files are modified in a PR. Detect this early.
     #
-    # GitHub APIにはGITHUB_TOKENの個別権限を照会するエンドポイントがないため、
-    # PRに目玉リアクション(eyes)を追加して即削除することで
-    # write権限の有無を判定しています。
-    # 追加が成功すれば権限あり(即削除)、失敗すれば権限なし。
+    # There is no API endpoint to query individual GITHUB_TOKEN permissions,
+    # so we add an "eyes" reaction to the PR and immediately delete it.
+    # Success means write access; failure means no write access.
     - name: Check GitHub token permissions
       id: check-token
       shell: bash
