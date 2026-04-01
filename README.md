@@ -14,6 +14,40 @@ The Composite Action is a low-level building block
 that requires the caller to handle checkout and permissions.
 For simpler setup, use the Reusable Workflow.
 
+## Authentication
+
+One of the following is required:
+
+- `claude_code_oauth_token` - Claude Code OAuth token
+- `anthropic_api_key` - Anthropic API key
+- A cloud provider (`use_bedrock`, `use_vertex`, or `use_foundry`)
+
+### Token Setup (OAuth token)
+
+#### Obtain a Claude Code OAuth token:
+
+```console
+claude --bare setup-token
+```
+
+Copy the output token.
+
+#### Set the token as a repository secret for GitHub Actions:
+
+```console
+gh secret set CLAUDE_CODE_OAUTH_TOKEN
+```
+
+Paste the token when prompted.
+
+#### If Dependabot also triggers reviews, set the token as a Dependabot secret:
+
+```console
+gh secret set CLAUDE_CODE_OAUTH_TOKEN --app dependabot
+```
+
+Paste the token when prompted.
+
 ## Reusable Workflow
 
 Handles checkout and timeout internally.
@@ -105,14 +139,6 @@ jobs:
 | `use_foundry`              | Use Microsoft Foundry with OIDC                         | No       | `false`                              |
 | `konoka_marketplace_url`   | Git URL of the Konoka marketplace                       | No       | `https://github.com/ncaq/konoka.git` |
 | `plugin_name`              | Plugin identifier within the marketplace                | No       | `kyosei@konoka`                      |
-
-#### Authentication
-
-One of the following is required:
-
-- `claude_code_oauth_token` - Claude Code OAuth token
-- `anthropic_api_key` - Anthropic API key
-- A cloud provider (`use_bedrock`, `use_vertex`, or `use_foundry`)
 
 #### Default allowed tools
 
