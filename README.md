@@ -76,8 +76,7 @@ jobs:
 ```
 
 Most Composite Action inputs can be passed via `with:`.
-The Reusable Workflow additionally accepts `fetch-depth` and `timeout-minutes`,
-but does not expose `github_token` (it manages checkout and tokens internally).
+The Reusable Workflow additionally accepts `fetch-depth` and `timeout-minutes`.
 See the Composite Action section below for the full input list.
 
 ## Composite Action

@@ -93,6 +93,11 @@ on:
       anthropic_api_key:
         description: Anthropic API key (alternative to OAuth token)
         required: false
+      github_token:
+        description: >-
+          GitHub token for API access.
+          If omitted, claude-code-action uses Claude GitHub App token (claude[bot]).
+        required: false
 
 # Claude GitHub App manages its own token, so only minimal permissions are needed.
 # If the caller passes github_token explicitly, additional permissions
@@ -114,6 +119,7 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.claude_code_oauth_token }}
           anthropic_api_key: ${{ secrets.anthropic_api_key }}
+          github_token: ${{ secrets.github_token }}
           model: ${{ inputs.model }}
           allowed_bots: ${{ inputs.allowed_bots }}
           allowed_tools: ${{ inputs.allowed_tools }}
