@@ -177,7 +177,7 @@ To add tools without replacing the defaults, use `additional_allowed_tools`:
 | `execution_file` | Path to the Claude Code execution output file    |
 | `session_id`     | Claude Code session ID for resuming conversation |
 
-### Permissions
+## Permissions
 
 The following permissions are required:
 
