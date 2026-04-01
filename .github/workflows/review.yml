@@ -105,12 +105,12 @@ permissions:
 jobs:
   kyosei:
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ inputs.timeout-minutes }}
+    timeout-minutes: ${{ inputs['timeout-minutes'] }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-          fetch-depth: ${{ inputs.fetch-depth }}
+          fetch-depth: ${{ inputs['fetch-depth'] }}
       - uses: ncaq/kyosei-action@1037662ba8bbb34f88eab6e44a12f3efcba0f45f # action branch HEAD
         with:
           claude_code_oauth_token: ${{ secrets.claude_code_oauth_token }}
