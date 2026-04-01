@@ -24,6 +24,7 @@ inputs:
   github_token:
     description: GitHub token with repo and pull request permissions (optional if using GitHub App)
     required: false
+    default: ${{ github.token }}
   allowed_bots:
     description: >-
       Comma-separated list of allowed bot usernames, or '*' to allow all bots.
@@ -163,7 +164,7 @@ runs:
       id: check-token
       shell: bash
       env:
-        GH_TOKEN: ${{ inputs.github_token || github.token }}
+        GH_TOKEN: ${{ inputs.github_token }}
         REPO: ${{ github.repository }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
