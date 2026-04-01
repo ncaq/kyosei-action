@@ -164,6 +164,19 @@ permissions:
   security-events: read # Reference vulnerability reports
 ```
 
+The minimum permissions required to run are:
+
+```yaml
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+```
+
+The other permissions allow the review agent to reference
+additional context (CI results, issues, discussions, etc.)
+for better review quality.
+
 If the token lacks `pull-requests: write`
 (e.g. due to workflow file changes in the PR or fork PRs),
 the action will skip gracefully with a warning instead of failing.
