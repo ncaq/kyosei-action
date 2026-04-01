@@ -114,13 +114,22 @@ runs:
         MODEL: ${{ inputs.model }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
+        echo "::group::Validate inputs"
         errors=()
 
         # Authentication: at least one credential must be provided unless
         # using cloud providers with OIDC.
-        if [[ -z "$CLAUDE_CODE_OAUTH_TOKEN" && -z "$ANTHROPIC_API_KEY" \
-              && "$USE_BEDROCK" != "true" && "$USE_VERTEX" != "true" \
-              && "$USE_FOUNDRY" != "true" ]]; then
+        if [[ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]]; then
+          echo "Authentication: OAuth token"
+        elif [[ -n "$ANTHROPIC_API_KEY" ]]; then
+          echo "Authentication: API key"
+        elif [[ "$USE_BEDROCK" == "true" ]]; then
+          echo "Authentication: Amazon Bedrock (OIDC)"
+        elif [[ "$USE_VERTEX" == "true" ]]; then
+          echo "Authentication: Google Vertex AI (OIDC)"
+        elif [[ "$USE_FOUNDRY" == "true" ]]; then
+          echo "Authentication: Microsoft Foundry (OIDC)"
+        else
           errors+=("Either claude_code_oauth_token, anthropic_api_key, or a cloud provider (use_bedrock/use_vertex/use_foundry) must be set.")
         fi
 
@@ -132,6 +141,11 @@ runs:
         if (( provider_count > 1 )); then
           errors+=("Only one cloud provider (use_bedrock, use_vertex, use_foundry) can be enabled at a time.")
         fi
+
+        echo "Model: $MODEL"
+        echo "Plugin: $PLUGIN_NAME"
+        echo "Marketplace: $KONOKA_MARKETPLACE_URL"
+        echo "PR: #$PR_NUMBER"
 
         # Marketplace URL must end with .git (required by claude-code-action).
         if [[ -n "$KONOKA_MARKETPLACE_URL" && "$KONOKA_MARKETPLACE_URL" != *.git ]]; then
@@ -154,11 +168,15 @@ runs:
         fi
 
         if (( ${#errors[@]} > 0 )); then
+          echo "::endgroup::"
           for error in "${errors[@]}"; do
             echo "::error::$error"
           done
           exit 1
         fi
+
+        echo "All inputs valid."
+        echo "::endgroup::"
 
     - name: Build allowed tools list
       id: build-allowed-tools
@@ -167,11 +185,14 @@ runs:
         ALLOWED_TOOLS: ${{ inputs.allowed_tools }}
         ADDITIONAL_ALLOWED_TOOLS: ${{ inputs.additional_allowed_tools }}
       run: |
+        echo "::group::Build allowed tools list"
         # Combine and convert newline-separated tools to comma-separated.
         joined=$(printf '%s\n%s' "$ALLOWED_TOOLS" "$ADDITIONAL_ALLOWED_TOOLS" \
           | sed '/^[[:space:]]*$/d' \
           | paste -sd ',' -)
+        echo "Allowed tools: $joined"
         echo "joined=$joined" >> "$GITHUB_OUTPUT"
+        echo "::endgroup::"
 
     - name: Run Kyosei
       id: claude-review
