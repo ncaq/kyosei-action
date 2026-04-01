@@ -48,6 +48,14 @@
               };
             };
             settings.formatter = {
+              action-validator = {
+                command = pkgs.action-validator;
+                includes = [
+                  ".github/actions/*/action.yml"
+                  ".github/workflows/*.yml"
+                  "action.yml"
+                ];
+              };
               editorconfig-checker = {
                 command = pkgs.editorconfig-checker;
                 includes = [ "*" ];
@@ -63,6 +71,7 @@
           devShells.default = pkgs.mkShell {
             buildInputs = with pkgs; [
               # treefmtで指定したプログラムの単体版。
+              action-validator
               actionlint
               deadnix
               editorconfig-checker
