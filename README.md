@@ -12,7 +12,25 @@ Composite Actionはローレイヤーな部品で、
 
 ## Reusable Workflow
 
-TBD
+Handles checkout, permissions, and timeout internally,
+so the caller only needs minimal configuration.
+
+```yaml
+name: Kyosei
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  kyosei:
+    uses: ncaq/kyosei-action/.github/workflows/review.yml@<commit-hash> # v1.0.0
+    secrets:
+      claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+```
+
+All Composite Action inputs can be passed via `with:`.
+See the Composite Action section below for details.
 
 ## Composite Action
 
