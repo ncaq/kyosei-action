@@ -1,4 +1,6 @@
-# Project Name
+# kyosei-action
+
+GitHub Action for [kyosei](https://github.com/ncaq/konoka/tree/master/plugins/kyosei) code review from [konoka](https://github.com/ncaq/konoka) marketplace.
 
 ## Setup
 
