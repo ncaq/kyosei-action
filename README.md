@@ -23,16 +23,18 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+# Reusable workflows are constrained by the caller's permissions,
+# so they must be explicitly declared here.
 permissions:
-  checks: read
-  contents: read
-  discussions: read
-  id-token: write
-  issues: read
-  pages: read
-  pull-requests: write
-  repository-projects: read
-  security-events: read
+  checks: read # Reference CI results
+  contents: read # Read repository contents for review
+  discussions: read # Reference discussions
+  id-token: write # Required for Claude Code Action
+  issues: read # Reference issues
+  pages: read # Reference existing documentation
+  pull-requests: write # Post review comments on PRs
+  repository-projects: read # Reference project schedules
+  security-events: read # Reference vulnerability reports
 
 jobs:
   kyosei:
@@ -58,9 +60,15 @@ on:
     types: [opened, synchronize]
 
 permissions:
-  contents: read
-  id-token: write
-  pull-requests: write
+  checks: read # Reference CI results
+  contents: read # Read repository contents for review
+  discussions: read # Reference discussions
+  id-token: write # Required for Claude Code Action
+  issues: read # Reference issues
+  pages: read # Reference existing documentation
+  pull-requests: write # Post review comments on PRs
+  repository-projects: read # Reference project schedules
+  security-events: read # Reference vulnerability reports
 
 jobs:
   review:
@@ -145,9 +153,15 @@ The following permissions are required:
 
 ```yaml
 permissions:
+  checks: read # Reference CI results
   contents: read # Read repository contents for review
+  discussions: read # Reference discussions
   id-token: write # Required for Claude Code Action
+  issues: read # Reference issues
+  pages: read # Reference existing documentation
   pull-requests: write # Post review comments on PRs
+  repository-projects: read # Reference project schedules
+  security-events: read # Reference vulnerability reports
 ```
 
 If the token lacks `pull-requests: write`
