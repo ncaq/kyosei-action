@@ -114,7 +114,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: ${{ inputs['fetch-depth'] }}
-      - uses: ncaq/kyosei-action@1037662ba8bbb34f88eab6e44a12f3efcba0f45f # action branch HEAD
+      - uses: ncaq/kyosei-action@2c9737dca963d78c7307db1967e52875621b29e1 # v0.1.0
         with:
           claude_code_oauth_token: ${{ secrets.claude_code_oauth_token }}
           anthropic_api_key: ${{ secrets.anthropic_api_key }}
