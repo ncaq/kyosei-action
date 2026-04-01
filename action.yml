@@ -6,7 +6,7 @@ branding:
   color: "blue"
 
 inputs:
-  # Authentication (exactly one required)
+  # Authentication (at least one required)
   claude_code_oauth_token:
     description: Claude Code OAuth token
     required: false
