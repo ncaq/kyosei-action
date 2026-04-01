@@ -91,6 +91,9 @@ nix-fast-build --option eval-cache false --no-link --skip-cached --no-nom
 `nix flake check`と比べて、
 評価が並列化されるため高速です。
 
+`--no-nom`オプションはnix-output-monitorを無効にしてシンプルなビルドログを出力します。
+LLMエージェントやCI環境などターミナル制御が貧弱な環境で使用してください。
+
 # リポジトリ構成
 
 Codex向けの`AGENTS.md`とClaude Code向けの`CLAUDE.md`は以下のように`.github/copilot-instructions.md`のシンボリックリンクになっています。

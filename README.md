@@ -228,7 +228,7 @@ nix fmt
 ### Check
 
 ```console
-nix-fast-build --option eval-cache false --no-link --skip-cached --no-nom
+nix-fast-build --option eval-cache false --no-link --skip-cached
 ```
 
 ## License
