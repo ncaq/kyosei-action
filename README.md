@@ -16,7 +16,8 @@ For simpler setup, use the Reusable Workflow.
 
 ## Authentication
 
-One of the following is required:
+At least one of the following is required.
+Typically you only need one; if multiple are provided they are passed through to claude-code-action as-is.
 
 - `claude_code_oauth_token` - Claude Code OAuth token
 - `anthropic_api_key` - Anthropic API key

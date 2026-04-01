@@ -6,7 +6,9 @@ branding:
   color: "blue"
 
 inputs:
-  # Authentication (at least one required)
+  # Authentication (at least one required).
+  # Typically only one is needed.
+  # If multiple are provided they are passed through to claude-code-action as-is.
   claude_code_oauth_token:
     description: Claude Code OAuth token
     required: false
