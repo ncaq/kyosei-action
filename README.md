@@ -6,9 +6,9 @@ Kyosei is a multi-perspective AI code review plugin that analyzes pull requests
 for code quality, performance, security, test coverage, and documentation accuracy.
 
 This repository provides a Composite Action and a Reusable Workflow.
-Composite Actionはローレイヤーな部品で、
-呼び出し側でcheckoutやpermissionsの設定が必要です。
-より簡単に使いたい場合はReusable Workflowの利用を推奨します。
+The Composite Action is a low-level building block
+that requires the caller to handle checkout and permissions.
+For simpler setup, use the Reusable Workflow.
 
 ## Reusable Workflow
 
@@ -50,7 +50,7 @@ See the Composite Action section below for details.
 
 ### Usage
 
-セキュリティのため、コミットハッシュでのピン留めを推奨します。
+Pinning by commit hash is recommended for security.
 
 ```yaml
 name: Kyosei
