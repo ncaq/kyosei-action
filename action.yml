@@ -159,26 +159,27 @@ runs:
           exit 1
         fi
 
-    # Check pull-requests:write permission on GITHUB_TOKEN.
+    # Check pull-requests:write permission on the explicitly provided github_token.
     # GitHub often restricts token permissions for security reasons,
     # e.g. when workflow files are modified in a PR. Detect this early.
+    #
+    # When github_token is omitted, claude-code-action uses Claude GitHub App
+    # which manages its own token, so we skip this check entirely.
     #
     # There is no API endpoint to query individual GITHUB_TOKEN permissions,
     # so we create a pending review and immediately delete it.
     # Pending reviews are invisible to other users until submitted.
     # This requires pull-requests:write, which is exactly what we need to verify.
     - name: Check GitHub token permissions
+      if: inputs.github_token != ''
       id: check-token
       shell: bash
       env:
-        # Permission check needs a token even when github_token is omitted
-        # (in which case claude-code-action uses Claude GitHub App instead).
-        # Fall back to the workflow-provided github.token for this step only.
-        GH_TOKEN: ${{ inputs.github_token || github.token }}
+        GH_TOKEN: ${{ inputs.github_token }}
         REPO: ${{ github.repository }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
-        if [[ -z "$GH_TOKEN" || -z "$PR_NUMBER" ]]; then
+        if [[ -z "$PR_NUMBER" ]]; then
           echo "skip=true" >> "$GITHUB_OUTPUT"
           exit 0
         fi
