@@ -72,7 +72,7 @@ jobs:
     permissions:
       contents: read # Read repository contents for checkout
       id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
-    uses: ncaq/kyosei-action/.github/workflows/review.yml@v0.2.1
+    uses: ncaq/kyosei-action/.github/workflows/review.yml@v0.3.0
     secrets:
       claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
@@ -129,7 +129,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 50
-      - uses: ncaq/kyosei-action@v0.2.1
+      - uses: ncaq/kyosei-action@v0.3.0
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
@@ -174,7 +174,7 @@ allowed_tools: |
 To add tools without replacing the defaults, use `additional_allowed_tools`:
 
 ```yaml
-- uses: ncaq/kyosei-action@v0.2.1
+- uses: ncaq/kyosei-action@v0.3.0
   with:
     claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
     additional_allowed_tools: |
