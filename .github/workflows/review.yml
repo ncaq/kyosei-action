@@ -119,7 +119,7 @@ concurrency:
 jobs:
   kyosei:
     name: review
-    runs-on: ${{ fromJSON(inputs.runs-on) }}
+    runs-on: ${{ fromJSON(inputs['runs-on']) }}
     # Claude GitHub App manages its own token, so only minimal permissions are needed.
     # If the caller passes custom_github_token explicitly, additional permissions
     # (e.g. pull-requests: write) must be granted by the caller.
