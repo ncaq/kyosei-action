@@ -65,7 +65,7 @@ on:
 permissions: {}
 
 jobs:
-  kyosei:
+  workflow:
     # Reusable workflows are constrained by the caller's permissions,
     # so they must be explicitly declared here.
     # Claude GitHub App manages its own token, so only minimal permissions are needed.
