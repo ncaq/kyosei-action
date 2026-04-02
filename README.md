@@ -49,6 +49,26 @@ gh secret set CLAUDE_CODE_OAUTH_TOKEN --app dependabot
 
 Paste the token when prompted.
 
+## Pinning to a commit hash
+
+This project follows immutable releases:
+once a version tag is published, it is never moved or overwritten.
+Version tags such as `@v0.3.0` are safe to use as-is.
+
+If your policy requires pinning to a commit hash rather than a tag,
+you need the commit SHA, not the tag object SHA.
+Annotated tags have their own object SHA which differs from the commit SHA.
+GitHub Actions requires the commit SHA.
+
+Use `^{commit}` to dereference the tag:
+
+```console
+git rev-parse v0.3.0^{commit}
+```
+
+Do not use `git rev-parse v0.3.0` without `^{commit}`.
+For annotated tags it returns the tag object SHA, which GitHub Actions cannot resolve.
+
 ## Reusable Workflow
 
 Handles checkout and timeout internally.
@@ -105,7 +125,7 @@ See the Composite Action section below for the full input list.
 
 ### Usage
 
-Examples below use version tags. For stricter security, pin to a commit hash.
+Examples below use version tags.
 
 ```yaml
 name: Kyosei
