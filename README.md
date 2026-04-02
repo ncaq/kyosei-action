@@ -9,6 +9,33 @@ marketplace.
 Kyosei is a multi-perspective AI code review plugin that analyzes pull requests
 for code quality, performance, security, test coverage, and documentation accuracy.
 
+## Motivation
+
+The Claude Code Review workflow installed via `install-github-app` does not re-review a PR after subsequent pushes.
+Once the initial review is posted, pushing fixes in response to feedback does not trigger a new review,
+so there is no automated way to verify that review comments have been properly addressed.
+
+Using [claude-code-action](https://github.com/anthropics/claude-code-action) directly enables per-push reviews, but introduces other problems:
+
+- Pushing to the same PR repeatedly causes the same comments to be posted over and over
+- Comments that have already been answered with "this is intentional" or "by design" are re-posted on each push
+
+The [kyosei](https://github.com/ncaq/konoka/tree/master/plugins/kyosei) plugin solves these problems.
+It collects existing PR conversations (comments, inline comments, and review comments) before each review,
+excludes already-posted feedback, resolved comments, and comments that have been acknowledged as intentional,
+so only genuinely new feedback is provided.
+It also removes project-specific coding conventions embedded in claude-code-action's default review agents.
+For example, claude-code-action's code-quality-reviewer includes the instruction
+"Prefer `type` over `interface` as per project standards",
+which is applied even to projects that do not use TypeScript.
+kyosei strips such opinionated defaults and expects project-specific conventions
+to be specified in `CLAUDE.md` instead.
+
+kyosei-action wraps the kyosei plugin as a GitHub Action,
+making it easy to run these reviews automatically in CI.
+
+## Overview
+
 This repository provides a Composite Action and a Reusable Workflow.
 The Composite Action is a low-level building block
 that requires the caller to handle checkout and permissions.
