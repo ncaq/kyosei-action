@@ -20,12 +20,15 @@ Using [claude-code-action](https://github.com/anthropics/claude-code-action) dir
 - Pushing to the same PR repeatedly causes the same comments to be posted over and over
 - Comments that have already been answered with "this is intentional" or "by design" are re-posted on each push
 
-kyosei-action collects existing PR conversations (comments, inline comments, and review comments) before each review.
-It excludes already-posted feedback, resolved comments, and comments that have been acknowledged as intentional,
+The [kyosei](https://github.com/ncaq/konoka/tree/master/plugins/kyosei) plugin solves these problems.
+It collects existing PR conversations (comments, inline comments, and review comments) before each review,
+excludes already-posted feedback, resolved comments, and comments that have been acknowledged as intentional,
 so only genuinely new feedback is provided.
-
 It also removes project-specific noise present in claude-code-action's default prompt,
 ensuring that instructions in `CLAUDE.md` are properly reflected in the review.
+
+kyosei-action wraps the kyosei plugin as a GitHub Action,
+making it easy to run these reviews automatically in CI.
 
 ## Overview
 
