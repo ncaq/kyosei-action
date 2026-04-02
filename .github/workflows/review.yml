@@ -99,16 +99,17 @@ on:
           If omitted, claude-code-action uses Claude GitHub App token (claude[bot]).
         required: false
 
-# Claude GitHub App manages its own token, so only minimal permissions are needed.
-# If the caller passes custom_github_token explicitly, additional permissions
-# (e.g. pull-requests: write) must be granted by the caller.
-permissions:
-  contents: read # Read repository contents for checkout
-  id-token: write # Required for Claude Code Action OIDC authentication
+permissions: {}
 
 jobs:
   kyosei:
     runs-on: ubuntu-24.04
+    # Claude GitHub App manages its own token, so only minimal permissions are needed.
+    # If the caller passes custom_github_token explicitly, additional permissions
+    # (e.g. pull-requests: write) must be granted by the caller.
+    permissions:
+      contents: read # Read repository contents for checkout
+      id-token: write # Required for Claude Code Action OIDC authentication
     timeout-minutes: ${{ inputs['timeout-minutes'] }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2

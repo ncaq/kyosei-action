@@ -6,13 +6,14 @@ on:
   pull_request:
   merge_group:
 
-permissions:
-  contents: read # リポジトリコンテンツの読み取り
-  id-token: write # niks3 OIDC認証
+permissions: {}
 
 jobs:
   nix-fast-build:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read # リポジトリコンテンツの読み取り
+      id-token: write # niks3 OIDC認証
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
