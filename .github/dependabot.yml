@@ -3,8 +3,10 @@ updates:
   - package-ecosystem: github-actions
     directory: "/"
     open-pull-requests-limit: 20
+    cooldown:
+      default-days: 7
+    schedule:
+      interval: daily
     labels:
       - "Type: CI"
       - "Type: Dependencies"
-    schedule:
-      interval: daily
