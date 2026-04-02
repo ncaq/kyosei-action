@@ -71,6 +71,16 @@ on:
         type: string
         required: false
         default: "kyosei@konoka"
+      runs-on:
+        description: Runner label for the job (e.g. a self-hosted runner label).
+        type: string
+        required: false
+        default: "ubuntu-24.04"
+      timeout-minutes:
+        description: Job timeout in minutes. Set as a safeguard against hangs.
+        type: number
+        required: false
+        default: 30
       fetch-depth:
         description: >-
           Number of commits to fetch.
@@ -78,11 +88,6 @@ on:
         type: number
         required: false
         default: 50
-      timeout-minutes:
-        description: Job timeout in minutes. Set as a safeguard against hangs.
-        type: number
-        required: false
-        default: 30
     # At least one secret is required.
     # Typically only one is needed.
     # If multiple are provided they are passed through to claude-code-action as-is.
@@ -111,7 +116,7 @@ concurrency:
 jobs:
   kyosei:
     name: review
-    runs-on: ubuntu-24.04
+    runs-on: ${{ inputs.runs-on }}
     # Claude GitHub App manages its own token, so only minimal permissions are needed.
     # If the caller passes custom_github_token explicitly, additional permissions
     # (e.g. pull-requests: write) must be granted by the caller.

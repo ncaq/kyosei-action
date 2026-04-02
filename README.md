@@ -78,7 +78,14 @@ jobs:
 ```
 
 Most Composite Action inputs can be passed via `with:`.
-The Reusable Workflow additionally accepts `fetch-depth` and `timeout-minutes`.
+The Reusable Workflow additionally accepts the following inputs:
+
+| Name              | Description                | Default        |
+| ----------------- | -------------------------- | -------------- |
+| `runs-on`         | Runner label for the job   | `ubuntu-24.04` |
+| `timeout-minutes` | Job timeout in minutes     | `30`           |
+| `fetch-depth`     | Number of commits to fetch | `50`           |
+
 See the Composite Action section below for the full input list.
 
 ## Composite Action
