@@ -18,14 +18,18 @@ inputs:
     description: Anthropic API key (alternative to OAuth token)
     required: false
     default: ""
-
-  # Model configuration
-  model:
-    description: Claude model to use
+  use_bedrock:
+    description: Use Amazon Bedrock with OIDC authentication
     required: false
-    default: "opus[1m]"
-
-  # Claude Code Action pass-through
+    default: "false"
+  use_vertex:
+    description: Use Google Vertex AI with OIDC authentication
+    required: false
+    default: "false"
+  use_foundry:
+    description: Use Microsoft Foundry with OIDC authentication
+    required: false
+    default: "false"
   custom_github_token:
     description: >-
       GitHub token for API access.
@@ -34,12 +38,20 @@ inputs:
       Named custom_github_token to avoid the reserved github_token input name.
     required: false
     default: ""
+
+  # Claude Code Action pass-through
   allowed_bots:
     description: >-
       Comma-separated list of allowed bot usernames, or '*' to allow all bots.
       Defaults to '*' because bots are not inherently more dangerous than humans.
     required: false
     default: "*"
+
+  # Claude Code configuration
+  model:
+    description: Claude model to use
+    required: false
+    default: "opus[1m]"
   allowed_tools:
     description: >-
       Allowed tools for Claude Code (newline-separated, replaces default set).
@@ -68,22 +80,10 @@ inputs:
     description: Additional arguments to pass to Claude CLI (appended after --model and --allowed-tools)
     required: false
     default: ""
-  use_bedrock:
-    description: Use Amazon Bedrock with OIDC authentication
-    required: false
-    default: "false"
-  use_vertex:
-    description: Use Google Vertex AI with OIDC authentication
-    required: false
-    default: "false"
-  use_foundry:
-    description: Use Microsoft Foundry with OIDC authentication
-    required: false
-    default: "false"
 
-  # Kyosei-specific
-  konoka_marketplace_url:
-    description: Git URL of the Konoka marketplace
+  # Marketplace and plugin
+  marketplace_url:
+    description: Git URL of the plugin marketplace
     required: false
     default: "https://github.com/ncaq/konoka.git"
   plugin_name:
@@ -110,7 +110,7 @@ runs:
         USE_BEDROCK: ${{ inputs.use_bedrock }}
         USE_VERTEX: ${{ inputs.use_vertex }}
         USE_FOUNDRY: ${{ inputs.use_foundry }}
-        KONOKA_MARKETPLACE_URL: ${{ inputs.konoka_marketplace_url }}
+        MARKETPLACE_URL: ${{ inputs.marketplace_url }}
         PLUGIN_NAME: ${{ inputs.plugin_name }}
         MODEL: ${{ inputs.model }}
         PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -145,12 +145,12 @@ runs:
 
         echo "Model: $MODEL"
         echo "Plugin: $PLUGIN_NAME"
-        echo "Marketplace: $KONOKA_MARKETPLACE_URL"
+        echo "Marketplace: $MARKETPLACE_URL"
         echo "PR: #$PR_NUMBER"
 
         # Marketplace URL must end with .git (required by claude-code-action).
-        if [[ -n "$KONOKA_MARKETPLACE_URL" && "$KONOKA_MARKETPLACE_URL" != *.git ]]; then
-          errors+=("konoka_marketplace_url must end with '.git': $KONOKA_MARKETPLACE_URL")
+        if [[ -n "$MARKETPLACE_URL" && "$MARKETPLACE_URL" != *.git ]]; then
+          errors+=("marketplace_url must end with '.git': $MARKETPLACE_URL")
         fi
 
         # Plugin name must not be empty.
@@ -202,18 +202,18 @@ runs:
       with:
         claude_code_oauth_token: ${{ inputs.claude_code_oauth_token }}
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
-        github_token: ${{ inputs.custom_github_token }} # Pass as-is (empty means claude-code-action uses Claude GitHub App token).
         use_bedrock: ${{ inputs.use_bedrock }}
         use_vertex: ${{ inputs.use_vertex }}
         use_foundry: ${{ inputs.use_foundry }}
-        plugin_marketplaces: ${{ inputs.konoka_marketplace_url }}
-        plugins: ${{ inputs.plugin_name }}
-        prompt: "/kyosei REPO:${{ github.repository }} PR_NUMBER:${{ github.event.pull_request.number }}"
+        github_token: ${{ inputs.custom_github_token }} # Pass as-is (empty means claude-code-action uses Claude GitHub App token).
         allowed_bots: ${{ inputs.allowed_bots }}
         claude_args: >-
           --model "${{ inputs.model }}"
           --allowed-tools "${{ steps.build-allowed-tools.outputs.joined }}"
           ${{ inputs.claude_args }}
+        plugin_marketplaces: ${{ inputs.marketplace_url }}
+        plugins: ${{ inputs.plugin_name }}
+        prompt: "/kyosei REPO:${{ github.repository }} PR_NUMBER:${{ github.event.pull_request.number }}"
 
     # If claude-code-action fails, emit a warning instead of failing the workflow.
     # Common causes: insufficient token permissions (e.g. workflow file changes
