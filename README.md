@@ -64,9 +64,10 @@ on:
 
 # Reusable workflows are constrained by the caller's permissions,
 # so they must be explicitly declared here.
+# Claude GitHub App manages its own token, so only minimal permissions are needed.
 permissions:
   contents: read # Read repository contents for checkout
-  id-token: write # Required for Claude Code Action OIDC authentication
+  id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
 
 jobs:
   kyosei:
@@ -92,9 +93,10 @@ on:
   pull_request:
     types: [opened, synchronize]
 
+# Claude GitHub App manages its own token, so only minimal permissions are needed.
 permissions:
   contents: read # Read repository contents for checkout
-  id-token: write # Required for Claude Code Action OIDC authentication
+  id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
 
 jobs:
   review:
@@ -173,8 +175,14 @@ so the workflow only needs minimal permissions:
 ```yaml
 permissions:
   contents: read # Read repository contents for checkout
-  id-token: write # Required for Claude Code Action OIDC authentication
+  id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
 ```
+
+`id-token: write` is required even when using `claude_code_oauth_token` or `anthropic_api_key`.
+claude-code-action internally exchanges this GitHub OIDC token at Anthropic's endpoint
+for a short-lived GitHub App token that posts PR comments.
+This is separate from Claude API authentication.
+Only when `custom_github_token` is provided is this OIDC exchange skipped.
 
 If you explicitly pass `custom_github_token`, the token needs additional permissions
 such as `pull-requests: write` for posting review comments.
