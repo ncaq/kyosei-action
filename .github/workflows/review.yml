@@ -2,12 +2,41 @@ name: Kyosei Review
 
 on:
   workflow_call:
-    inputs:
-      model:
-        description: Claude model to use
-        type: string
+    # At least one secret is required.
+    # Typically only one is needed.
+    # If multiple are provided they are passed through to claude-code-action as-is.
+    secrets:
+      claude_code_oauth_token:
+        description: Claude Code OAuth token
         required: false
-        default: "opus[1m]"
+      anthropic_api_key:
+        description: Anthropic API key (alternative to OAuth token)
+        required: false
+      custom_github_token:
+        description: >-
+          GitHub token for API access.
+          If omitted, claude-code-action uses Claude GitHub App token (claude[bot]).
+        required: false
+
+    inputs:
+      # Authentication
+      use_bedrock:
+        description: Use Amazon Bedrock with OIDC authentication
+        type: boolean
+        required: false
+        default: false
+      use_vertex:
+        description: Use Google Vertex AI with OIDC authentication
+        type: boolean
+        required: false
+        default: false
+      use_foundry:
+        description: Use Microsoft Foundry with OIDC authentication
+        type: boolean
+        required: false
+        default: false
+
+      # Claude Code Action pass-through
       allowed_bots:
         description: >-
           Comma-separated list of allowed bot usernames, or '*' to allow all bots.
@@ -15,6 +44,13 @@ on:
         type: string
         required: false
         default: "*"
+
+      # Claude Code configuration
+      model:
+        description: Claude model to use
+        type: string
+        required: false
+        default: "opus[1m]"
       allowed_tools:
         description: >-
           Allowed tools for Claude Code (newline-separated, replaces default set).
@@ -46,23 +82,10 @@ on:
         type: string
         required: false
         default: ""
-      use_bedrock:
-        description: Use Amazon Bedrock with OIDC authentication
-        type: boolean
-        required: false
-        default: false
-      use_vertex:
-        description: Use Google Vertex AI with OIDC authentication
-        type: boolean
-        required: false
-        default: false
-      use_foundry:
-        description: Use Microsoft Foundry with OIDC authentication
-        type: boolean
-        required: false
-        default: false
-      konoka_marketplace_url:
-        description: Git URL of the Konoka marketplace
+
+      # Marketplace and plugin
+      marketplace_url:
+        description: Git URL of the plugin marketplace
         type: string
         required: false
         default: "https://github.com/ncaq/konoka.git"
@@ -71,6 +94,8 @@ on:
         type: string
         required: false
         default: "kyosei@konoka"
+
+      # Workflow configuration
       runs-on:
         description: >-
           Runner label(s) for the job. Must be a valid JSON value because it is parsed with fromJSON().
@@ -91,21 +116,6 @@ on:
         type: number
         required: false
         default: 50
-    # At least one secret is required.
-    # Typically only one is needed.
-    # If multiple are provided they are passed through to claude-code-action as-is.
-    secrets:
-      claude_code_oauth_token:
-        description: Claude Code OAuth token
-        required: false
-      anthropic_api_key:
-        description: Anthropic API key (alternative to OAuth token)
-        required: false
-      custom_github_token:
-        description: >-
-          GitHub token for API access.
-          If omitted, claude-code-action uses Claude GitHub App token (claude[bot]).
-        required: false
 
 permissions: {}
 
@@ -136,14 +146,14 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.claude_code_oauth_token }}
           anthropic_api_key: ${{ secrets.anthropic_api_key }}
-          custom_github_token: ${{ secrets.custom_github_token }}
-          model: ${{ inputs.model }}
-          allowed_bots: ${{ inputs.allowed_bots }}
-          allowed_tools: ${{ inputs.allowed_tools }}
-          additional_allowed_tools: ${{ inputs.additional_allowed_tools }}
-          claude_args: ${{ inputs.claude_args }}
           use_bedrock: ${{ inputs.use_bedrock && 'true' || 'false' }}
           use_vertex: ${{ inputs.use_vertex && 'true' || 'false' }}
           use_foundry: ${{ inputs.use_foundry && 'true' || 'false' }}
-          konoka_marketplace_url: ${{ inputs.konoka_marketplace_url }}
+          custom_github_token: ${{ secrets.custom_github_token }}
+          allowed_bots: ${{ inputs.allowed_bots }}
+          model: ${{ inputs.model }}
+          allowed_tools: ${{ inputs.allowed_tools }}
+          additional_allowed_tools: ${{ inputs.additional_allowed_tools }}
+          claude_args: ${{ inputs.claude_args }}
+          marketplace_url: ${{ inputs.marketplace_url }}
           plugin_name: ${{ inputs.plugin_name }}
