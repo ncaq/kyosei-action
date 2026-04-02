@@ -78,7 +78,27 @@ jobs:
 ```
 
 Most Composite Action inputs can be passed via `with:`.
-The Reusable Workflow additionally accepts `fetch-depth` and `timeout-minutes`.
+The Reusable Workflow additionally accepts the following inputs:
+
+| Name              | Description                | Default          |
+| ----------------- | -------------------------- | ---------------- |
+| `runs-on`         | Runner label(s) as JSON    | `"ubuntu-24.04"` |
+| `timeout-minutes` | Job timeout in minutes     | `30`             |
+| `fetch-depth`     | Number of commits to fetch | `50`             |
+
+`runs-on` is parsed with `fromJSON()`, so the value must be valid JSON.
+YAML double quotes are stripped by the YAML parser, so you need to nest JSON quotes inside YAML single quotes:
+
+```yaml
+# Single label
+with:
+  runs-on: '"ubuntu-24.04"'
+
+# Multiple labels
+with:
+  runs-on: '["self-hosted", "linux"]'
+```
+
 See the Composite Action section below for the full input list.
 
 ## Composite Action
