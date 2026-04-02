@@ -62,7 +62,7 @@ GitHub Actions requires the commit SHA.
 
 Use `^{commit}` to dereference the tag:
 
-```bash
+```console
 git rev-parse v0.3.0^{commit}
 ```
 
