@@ -1,0 +1,4 @@
+rules:
+  concurrency-limits:
+    ignore:
+      - check.yml # 連続pushでも全て検査したいためconcurrency制限は不要

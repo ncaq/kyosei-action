@@ -62,15 +62,16 @@ on:
   pull_request:
     types: [opened, synchronize]
 
-# Reusable workflows are constrained by the caller's permissions,
-# so they must be explicitly declared here.
-# Claude GitHub App manages its own token, so only minimal permissions are needed.
-permissions:
-  contents: read # Read repository contents for checkout
-  id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
+permissions: {}
 
 jobs:
   kyosei:
+    # Reusable workflows are constrained by the caller's permissions,
+    # so they must be explicitly declared here.
+    # Claude GitHub App manages its own token, so only minimal permissions are needed.
+    permissions:
+      contents: read # Read repository contents for checkout
+      id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
     uses: ncaq/kyosei-action/.github/workflows/review.yml@v0.2.1
     secrets:
       claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -93,14 +94,15 @@ on:
   pull_request:
     types: [opened, synchronize]
 
-# Claude GitHub App manages its own token, so only minimal permissions are needed.
-permissions:
-  contents: read # Read repository contents for checkout
-  id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
+permissions: {}
 
 jobs:
   review:
     runs-on: ubuntu-24.04
+    # Claude GitHub App manages its own token, so only minimal permissions are needed.
+    permissions:
+      contents: read # Read repository contents for checkout
+      id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -170,7 +172,7 @@ To add tools without replacing the defaults, use `additional_allowed_tools`:
 ## Permissions
 
 When `custom_github_token` is omitted (default), Claude GitHub App manages its own token,
-so the workflow only needs minimal permissions:
+so each job only needs minimal permissions:
 
 ```yaml
 permissions:

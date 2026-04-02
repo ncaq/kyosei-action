@@ -6,15 +6,16 @@ on:
     # on the same revision from ready_for_review or reopened events.
     types: [opened, synchronize]
 
-# Reusable workflows are constrained by the caller's permissions,
-# so they must be explicitly declared here.
-# Claude GitHub App manages its own token, so only minimal permissions are needed.
-permissions:
-  contents: read # Read repository contents for checkout
-  id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
+permissions: {}
 
 jobs:
   kyosei:
+    # Reusable workflows are constrained by the caller's permissions,
+    # so they must be explicitly declared here.
+    # Claude GitHub App manages its own token, so only minimal permissions are needed.
+    permissions:
+      contents: read # Read repository contents for checkout
+      id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
     uses: ./.github/workflows/review.yml
     secrets:
       claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
