@@ -24,8 +24,12 @@ The [kyosei](https://github.com/ncaq/konoka/tree/master/plugins/kyosei) plugin s
 It collects existing PR conversations (comments, inline comments, and review comments) before each review,
 excludes already-posted feedback, resolved comments, and comments that have been acknowledged as intentional,
 so only genuinely new feedback is provided.
-It also removes project-specific noise present in claude-code-action's default prompt,
-ensuring that instructions in `CLAUDE.md` are properly reflected in the review.
+It also removes project-specific coding conventions embedded in claude-code-action's default review agents.
+For example, claude-code-action's code-quality-reviewer includes the instruction
+"Prefer `type` over `interface` as per project standards",
+which is applied even to projects that do not use TypeScript.
+kyosei strips such opinionated defaults and expects project-specific conventions
+to be specified in `CLAUDE.md` instead.
 
 kyosei-action wraps the kyosei plugin as a GitHub Action,
 making it easy to run these reviews automatically in CI.
