@@ -1,4 +1,4 @@
-name: Kyosei
+name: Kyosei Review
 
 on:
   workflow_call:
@@ -110,7 +110,7 @@ concurrency:
 
 jobs:
   kyosei:
-    name: kyosei
+    name: review
     runs-on: ubuntu-24.04
     # Claude GitHub App manages its own token, so only minimal permissions are needed.
     # If the caller passes custom_github_token explicitly, additional permissions
