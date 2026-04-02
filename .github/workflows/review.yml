@@ -101,6 +101,13 @@ on:
 
 permissions: {}
 
+# Cancel previous runs on the same PR to avoid stale reviews.
+# The review agent reads the current PR state, so concurrent runs
+# on different revisions would produce inconsistent results.
+concurrency:
+  group: kyosei-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   kyosei:
     name: kyosei
