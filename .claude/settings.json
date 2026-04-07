@@ -1,4 +1,16 @@
 {
+  "extraKnownMarketplaces": {
+    "konoka": {
+      "source": {
+        "source": "github",
+        "repo": "ncaq/konoka",
+        "ref": "v2.1.0"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "kyosei@konoka": true
+  },
   "permissions": {
     "additionalDirectories": ["~/Desktop/konoka"],
     "allow": [
