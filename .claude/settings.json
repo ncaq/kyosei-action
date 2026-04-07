@@ -1,4 +1,7 @@
 {
+  "permissions": {
+    "additionalDirectories": ["~/Desktop/konoka"]
+  },
   "hooks": {
     "PostToolUse": [
       {
