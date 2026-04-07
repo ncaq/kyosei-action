@@ -9,7 +9,8 @@
     }
   },
   "enabledPlugins": {
-    "kyosei@konoka": true
+    "kyosei@konoka": true,
+    "nix-tasuke@konoka": true
   },
   "permissions": {
     "additionalDirectories": ["~/Desktop/konoka"],
