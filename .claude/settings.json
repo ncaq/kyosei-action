@@ -12,6 +12,7 @@
     "kyosei@konoka": true,
     "nix-tasuke@konoka": true
   },
+  "enableAllProjectMcpServers": true,
   "permissions": {
     "additionalDirectories": ["~/Desktop/konoka"],
     "allow": [
