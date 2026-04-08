@@ -22,34 +22,23 @@ ASCIIに対応する全角形(Fullwidth Forms)は使用禁止。
 
 ## フォーマット
 
-基本的にファイルはツールで自動フォーマットしています。
-
-### nix fmt
-
-[treefmt-nix](https://github.com/numtide/treefmt-nix)が対応しているファイルは以下のコマンドでフォーマット出来ます。
+nix fmtでフォーマットとリントを実行できます。
 
 ```console
 nix fmt
 ```
 
-Stopフックで`nix fmt`が自動実行されます。
+[nix-tasuke](https://github.com/ncaq/konoka/tree/master/plugins/nix-tasuke)プラグインにより、
+Claudeの応答完了時にStopフックで`nix fmt`が自動実行されます。
 ファイルの差分が出ることがあります。
 
 ## 統合チェック
 
-以下のコマンドでプロジェクト全体のチェックが行えます。
-フォーマットやリントやテストなどがまとめて実行されます。
+nix-fast-buildコマンドで統合チェックを実行できます。
 
 ```console
 nix-fast-build --option eval-cache false --no-link --skip-cached --no-nom
 ```
-
-`nix-fast-build`は`nix-eval-jobs`を使って`checks`を並列評価・ビルドします。
-`nix flake check`と比べて、
-評価が並列化されるため高速です。
-
-`--no-nom`オプションはnix-output-monitorを無効にしてシンプルなビルドログを出力します。
-LLMエージェントやCI環境などターミナル制御が貧弱な環境で使用してください。
 
 # リポジトリ構成
 
