@@ -83,6 +83,5 @@
       "mcp__github__search_users",
       "mcp__nixos"
     ]
-  },
-  "hooks": {}
+  }
 }
