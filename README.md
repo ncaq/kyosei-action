@@ -107,6 +107,8 @@ name: Kyosei
 
 on:
   pull_request:
+    # Only opened and synchronize to avoid duplicate reviews
+    # on the same revision from ready_for_review or reopened events.
     types: [opened, synchronize]
 
 permissions: {}
@@ -159,6 +161,8 @@ name: Kyosei
 
 on:
   pull_request:
+    # Only opened and synchronize to avoid duplicate reviews
+    # on the same revision from ready_for_review or reopened events.
     types: [opened, synchronize]
 
 permissions: {}
