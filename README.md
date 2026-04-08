@@ -129,11 +129,37 @@ jobs:
 Most Composite Action inputs can be passed via `with:`.
 The Reusable Workflow additionally accepts the following inputs:
 
-| Name              | Description                | Default          |
-| ----------------- | -------------------------- | ---------------- |
-| `runs-on`         | Runner label(s) as JSON    | `"ubuntu-24.04"` |
-| `timeout-minutes` | Job timeout in minutes     | `30`             |
-| `fetch-depth`     | Number of commits to fetch | `50`             |
+| Name                   | Description                                                                | Default          |
+| ---------------------- | -------------------------------------------------------------------------- | ---------------- |
+| `runs-on`              | Runner label(s) as JSON                                                    | `"ubuntu-24.04"` |
+| `timeout-minutes`      | Job timeout in minutes                                                     | `30`             |
+| `fetch-depth`          | Number of commits to fetch                                                 | `50`             |
+| `self_hosted_packages` | Packages to install via apt-get on self-hosted runners (newline-separated) | See below        |
+
+### Self-hosted runners
+
+When `runner.environment` is `self-hosted` and `self_hosted_packages` is non-empty,
+the workflow automatically installs the listed packages via `apt-get` before checkout.
+The default list covers the minimum programs required by kyosei-action and claude-code-action:
+
+```yaml
+self_hosted_packages: |
+  curl
+  gh
+  git
+  zstd
+```
+
+To skip automatic installation, pass an empty string:
+
+```yaml
+with:
+  self_hosted_packages: ""
+```
+
+On GitHub-hosted runners this step is always skipped regardless of the input value.
+
+### `runs-on` format
 
 `runs-on` is parsed with `fromJSON()`, so the value must be valid JSON.
 YAML double quotes are stripped by the YAML parser, so you need to nest JSON quotes inside YAML single quotes:

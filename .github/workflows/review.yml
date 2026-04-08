@@ -117,6 +117,20 @@ on:
         required: false
         default: 50
 
+      # Self-hosted runner support
+      self_hosted_packages:
+        description: >-
+          Newline-separated list of packages to install via apt-get on self-hosted runners.
+          Installation runs only when the runner environment is "self-hosted".
+          Set to an empty string to skip installation entirely.
+        type: string
+        required: false
+        default: |
+          curl
+          gh
+          git
+          zstd
+
 permissions: {}
 
 # Cancel previous runs on the same PR to avoid stale reviews.
@@ -138,6 +152,16 @@ jobs:
       id-token: write # Required for Claude Code Action OIDC authentication
     timeout-minutes: ${{ inputs['timeout-minutes'] }}
     steps:
+      - name: Install packages for self-hosted runner
+        if: runner.environment == 'self-hosted' && inputs.self_hosted_packages != ''
+        env:
+          PACKAGES: ${{ inputs.self_hosted_packages }}
+        shell: bash
+        run: |
+          sudo apt-get update -qq
+          # Convert newline-separated list to a bash array, then install.
+          mapfile -t pkgs < <(echo "$PACKAGES" | sed '/^[[:space:]]*$/d')
+          sudo apt-get install -y --no-install-recommends "${pkgs[@]}"
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
