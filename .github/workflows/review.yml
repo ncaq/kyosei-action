@@ -166,7 +166,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: ${{ inputs['fetch-depth'] }}
-      - uses: ncaq/kyosei-action@v0.4.0 # zizmor: ignore[unpinned-uses] self-reference; immutable releases make tag pinning safe
+      - uses: ncaq/kyosei-action@v1.0.0 # zizmor: ignore[unpinned-uses] self-reference; immutable releases make tag pinning safe
         with:
           claude_code_oauth_token: ${{ secrets.claude_code_oauth_token }}
           anthropic_api_key: ${{ secrets.anthropic_api_key }}
