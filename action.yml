@@ -265,7 +265,7 @@ runs:
         additional_permissions: ${{ inputs.additional_permissions }}
         settings: ${{ inputs.settings }}
         include_fix_links: ${{ inputs.include_fix_links }}
-        display_report: ${{ inputs.display_report != 'auto' && inputs.display_report || (github.event.repository.private && 'true' || 'false') }}
+        display_report: ${{ (inputs.display_report == 'auto' && github.event.repository.private || inputs.display_report == 'true') && 'true' || 'false' }}
         show_full_output: ${{ inputs.show_full_output }}
         claude_args: >-
           --model "${{ inputs.model }}"
