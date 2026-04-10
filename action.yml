@@ -266,7 +266,7 @@ runs:
         exclude_comments_by_actor: ${{ inputs.exclude_comments_by_actor }}
         additional_permissions: ${{ inputs.additional_permissions }}
         settings: ${{ inputs.settings }}
-        include_fix_links: ${{ inputs.include_fix_links }}
+        include_fix_links: ${{ inputs.include_fix_links == 'true' && 'true' || 'false' }}
         display_report: ${{ (inputs.display_report == 'auto' && github.event.repository.private || inputs.display_report == 'true') && 'true' || 'false' }}
         show_full_output: ${{ (inputs.show_full_output == 'true' && github.event.repository.private) && 'true' || 'false' }}
         claude_args: >-
