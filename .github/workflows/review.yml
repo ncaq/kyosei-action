@@ -16,6 +16,7 @@ on:
         description: >-
           GitHub token for API access.
           If omitted, claude-code-action uses Claude GitHub App token (claude[bot]).
+          Provide explicitly to use a custom token or github.token instead.
         required: false
 
     inputs:
@@ -48,6 +49,7 @@ on:
         description: >-
           Comma-separated list of users without write permission who are allowed to trigger Claude,
           or '*' to allow all. Only works when custom_github_token is provided.
+          Enables bubblewrap sandbox and env scrubbing for safety.
         type: string
         required: false
         default: ""
@@ -68,13 +70,15 @@ on:
       additional_permissions:
         description: >-
           Additional GitHub permissions for the App token (newline-separated 'key: value').
-          Only effective with OIDC token exchange.
+          Example: 'actions: read' enables CI/CD failure analysis.
+          Only effective with OIDC token exchange (ignored when custom_github_token is set).
         type: string
         required: false
         default: ""
       settings:
         description: >-
           Claude Code settings as a JSON string or path to a JSON file.
+          Merged with existing settings (input takes precedence).
           Can configure hooks, env, MCP settings, etc.
         type: string
         required: false
@@ -113,7 +117,7 @@ on:
         required: false
         default: ""
       claude_args:
-        description: Additional arguments to pass to Claude CLI
+        description: Additional arguments to pass to Claude CLI (appended after --model and --allowed-tools)
         type: string
         required: false
         default: ""
@@ -135,7 +139,7 @@ on:
       show_full_output:
         description: >-
           Show full Claude Code JSON output in Actions logs.
-          May contain secrets; use only for debugging.
+          May contain secrets in tool results; use only for debugging.
           Ignored on public repositories to prevent secret leakage.
         type: boolean
         required: false
