@@ -213,7 +213,7 @@ runs:
           ${{ inputs.claude_args }}
         plugin_marketplaces: ${{ inputs.marketplace_url }}
         plugins: ${{ inputs.plugin_name }}
-        prompt: "/kyosei REPO:${{ github.repository }} PR_NUMBER:${{ github.event.pull_request.number }}"
+        prompt: "/kyosei ${{ github.event.pull_request.html_url }}"
 
     # If claude-code-action fails, emit a warning instead of failing the workflow.
     # Common causes: insufficient token permissions (e.g. workflow file changes
