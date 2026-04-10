@@ -136,6 +136,7 @@ on:
         description: >-
           Show full Claude Code JSON output in Actions logs.
           May contain secrets; use only for debugging.
+          Ignored on public repositories to prevent secret leakage.
         type: boolean
         required: false
         default: false

@@ -233,7 +233,7 @@ jobs:
 | `claude_args`               | Additional CLI arguments                                        | No       | `""`                                 |
 | `include_fix_links`         | Include "Fix this" deep links in review feedback                | No       | `true`                               |
 | `display_report`            | Show Claude Code Report in Step Summary (`true`/`false`/`auto`) | No       | `auto` (enabled for private repos)   |
-| `show_full_output`          | Show full Claude Code JSON output in Actions logs               | No       | `false`                              |
+| `show_full_output`          | Show full JSON output in logs (private repos only)              | No       | `false`                              |
 | `marketplace_url`           | Git URL of the plugin marketplace                               | No       | `https://github.com/ncaq/konoka.git` |
 | `plugin_name`               | Plugin identifier within the marketplace                        | No       | `kyosei@konoka`                      |
 

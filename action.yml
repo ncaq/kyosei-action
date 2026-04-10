@@ -130,6 +130,7 @@ inputs:
     description: >-
       Show full Claude Code JSON output in Actions logs.
       May contain secrets in tool results; use only for debugging.
+      Ignored on public repositories to prevent secret leakage.
     required: false
     default: "false"
 
@@ -266,7 +267,7 @@ runs:
         settings: ${{ inputs.settings }}
         include_fix_links: ${{ inputs.include_fix_links }}
         display_report: ${{ (inputs.display_report == 'auto' && github.event.repository.private || inputs.display_report == 'true') && 'true' || 'false' }}
-        show_full_output: ${{ inputs.show_full_output }}
+        show_full_output: ${{ (inputs.show_full_output == 'true' && github.event.repository.private) && 'true' || 'false' }}
         claude_args: >-
           --model "${{ inputs.model }}"
           --allowed-tools "${{ steps.build-allowed-tools.outputs.joined }}"
