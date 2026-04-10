@@ -213,21 +213,29 @@ jobs:
 
 ### Inputs
 
-| Name                       | Description                                             | Required | Default                              |
-| -------------------------- | ------------------------------------------------------- | -------- | ------------------------------------ |
-| `claude_code_oauth_token`  | Claude Code OAuth token                                 | No       |                                      |
-| `anthropic_api_key`        | Anthropic API key (alternative to OAuth token)          | No       |                                      |
-| `use_bedrock`              | Use Amazon Bedrock with OIDC                            | No       | `false`                              |
-| `use_vertex`               | Use Google Vertex AI with OIDC                          | No       | `false`                              |
-| `use_foundry`              | Use Microsoft Foundry with OIDC                         | No       | `false`                              |
-| `custom_github_token`      | GitHub token (omit to use Claude GitHub App)            | No       | `""`                                 |
-| `allowed_bots`             | Allowed bot usernames or `*` for all                    | No       | `*`                                  |
-| `model`                    | Claude model to use                                     | No       | `opus[1m]`                           |
-| `allowed_tools`            | Allowed tools (newline-separated, replaces default set) | No       | See below                            |
-| `additional_allowed_tools` | Additional tools to append (newline-separated)          | No       | `""`                                 |
-| `claude_args`              | Additional CLI arguments                                | No       | `""`                                 |
-| `marketplace_url`          | Git URL of the plugin marketplace                       | No       | `https://github.com/ncaq/konoka.git` |
-| `plugin_name`              | Plugin identifier within the marketplace                | No       | `kyosei@konoka`                      |
+| Name                        | Description                                                     | Required | Default                              |
+| --------------------------- | --------------------------------------------------------------- | -------- | ------------------------------------ |
+| `claude_code_oauth_token`   | Claude Code OAuth token                                         | No       |                                      |
+| `anthropic_api_key`         | Anthropic API key (alternative to OAuth token)                  | No       |                                      |
+| `use_bedrock`               | Use Amazon Bedrock with OIDC                                    | No       | `false`                              |
+| `use_vertex`                | Use Google Vertex AI with OIDC                                  | No       | `false`                              |
+| `use_foundry`               | Use Microsoft Foundry with OIDC                                 | No       | `false`                              |
+| `custom_github_token`       | GitHub token (omit to use Claude GitHub App)                    | No       | `""`                                 |
+| `allowed_bots`              | Allowed bot usernames or `*` for all                            | No       | `*`                                  |
+| `allowed_non_write_users`   | Users without write permission allowed to trigger Claude        | No       | `""`                                 |
+| `include_comments_by_actor` | Include only comments from specific actors (wildcard support)   | No       | `""`                                 |
+| `exclude_comments_by_actor` | Exclude comments from specific actors (wildcard support)        | No       | `""`                                 |
+| `additional_permissions`    | Additional GitHub App token permissions (e.g. `actions: read`)  | No       | `""`                                 |
+| `settings`                  | Claude Code settings as JSON string or file path                | No       | `""`                                 |
+| `model`                     | Claude model to use                                             | No       | `opus[1m]`                           |
+| `allowed_tools`             | Allowed tools (newline-separated, replaces default set)         | No       | See below                            |
+| `additional_allowed_tools`  | Additional tools to append (newline-separated)                  | No       | `""`                                 |
+| `claude_args`               | Additional CLI arguments                                        | No       | `""`                                 |
+| `include_fix_links`         | Include "Fix this" deep links in review feedback                | No       | `true`                               |
+| `display_report`            | Show Claude Code Report in Step Summary (`true`/`false`/`auto`) | No       | `auto` (enabled for private repos)   |
+| `show_full_output`          | Show full Claude Code JSON output in Actions logs               | No       | `false`                              |
+| `marketplace_url`           | Git URL of the plugin marketplace                               | No       | `https://github.com/ncaq/konoka.git` |
+| `plugin_name`               | Plugin identifier within the marketplace                        | No       | `kyosei@konoka`                      |
 
 #### Default allowed tools
 

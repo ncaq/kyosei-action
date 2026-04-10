@@ -44,6 +44,41 @@ on:
         type: string
         required: false
         default: "*"
+      allowed_non_write_users:
+        description: >-
+          Comma-separated list of users without write permission who are allowed to trigger Claude,
+          or '*' to allow all. Only works when custom_github_token is provided.
+        type: string
+        required: false
+        default: ""
+      include_comments_by_actor:
+        description: >-
+          Filter to include only comments from specific actors.
+          Supports wildcards (e.g. '*[bot]'). Empty means include all.
+        type: string
+        required: false
+        default: ""
+      exclude_comments_by_actor:
+        description: >-
+          Filter to exclude comments from specific actors.
+          Supports wildcards. Exclusion takes precedence over inclusion.
+        type: string
+        required: false
+        default: ""
+      additional_permissions:
+        description: >-
+          Additional GitHub permissions for the App token (newline-separated 'key: value').
+          Only effective with OIDC token exchange.
+        type: string
+        required: false
+        default: ""
+      settings:
+        description: >-
+          Claude Code settings as a JSON string or path to a JSON file.
+          Can configure hooks, env, MCP settings, etc.
+        type: string
+        required: false
+        default: ""
 
       # Claude Code configuration
       model:
@@ -82,6 +117,28 @@ on:
         type: string
         required: false
         default: ""
+
+      # UI control
+      include_fix_links:
+        description: Include 'Fix this' deep links in PR review feedback
+        type: boolean
+        required: false
+        default: true
+      display_report:
+        description: >-
+          Display Claude Code Report in GitHub Step Summary.
+          Useful for understanding what Claude did during the review.
+          "auto" (default) enables it only for private repositories.
+        type: string
+        required: false
+        default: "auto"
+      show_full_output:
+        description: >-
+          Show full Claude Code JSON output in Actions logs.
+          May contain secrets; use only for debugging.
+        type: boolean
+        required: false
+        default: false
 
       # Marketplace and plugin
       marketplace_url:
@@ -175,9 +232,17 @@ jobs:
           use_foundry: ${{ inputs.use_foundry && 'true' || 'false' }}
           custom_github_token: ${{ secrets.custom_github_token }}
           allowed_bots: ${{ inputs.allowed_bots }}
+          allowed_non_write_users: ${{ inputs.allowed_non_write_users }}
+          include_comments_by_actor: ${{ inputs.include_comments_by_actor }}
+          exclude_comments_by_actor: ${{ inputs.exclude_comments_by_actor }}
+          additional_permissions: ${{ inputs.additional_permissions }}
+          settings: ${{ inputs.settings }}
           model: ${{ inputs.model }}
           allowed_tools: ${{ inputs.allowed_tools }}
           additional_allowed_tools: ${{ inputs.additional_allowed_tools }}
           claude_args: ${{ inputs.claude_args }}
+          include_fix_links: ${{ inputs.include_fix_links && 'true' || 'false' }}
+          display_report: ${{ inputs.display_report }}
+          show_full_output: ${{ inputs.show_full_output && 'true' || 'false' }}
           marketplace_url: ${{ inputs.marketplace_url }}
           plugin_name: ${{ inputs.plugin_name }}
