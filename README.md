@@ -213,29 +213,162 @@ jobs:
 
 ### Inputs
 
-| Name                        | Description                                                             | Required | Default                              |
-| --------------------------- | ----------------------------------------------------------------------- | -------- | ------------------------------------ |
-| `claude_code_oauth_token`   | Claude Code OAuth token                                                 | No       |                                      |
-| `anthropic_api_key`         | Anthropic API key (alternative to OAuth token)                          | No       |                                      |
-| `use_bedrock`               | Use Amazon Bedrock with OIDC                                            | No       | `false`                              |
-| `use_vertex`                | Use Google Vertex AI with OIDC                                          | No       | `false`                              |
-| `use_foundry`               | Use Microsoft Foundry with OIDC                                         | No       | `false`                              |
-| `custom_github_token`       | GitHub token (omit to use Claude GitHub App)                            | No       | `""`                                 |
-| `allowed_bots`              | Allowed bot usernames or `*` for all                                    | No       | `*`                                  |
-| `allowed_non_write_users`   | Users without write permission allowed (requires `custom_github_token`) | No       | `""`                                 |
-| `include_comments_by_actor` | Include only comments from specific actors (wildcard support)           | No       | `""`                                 |
-| `exclude_comments_by_actor` | Exclude comments from specific actors (wildcard support)                | No       | `""`                                 |
-| `additional_permissions`    | Additional GitHub App token permissions (e.g. `actions: read`)          | No       | `""`                                 |
-| `settings`                  | Claude Code settings as JSON string or file path                        | No       | `""`                                 |
-| `model`                     | Claude model to use                                                     | No       | `opus[1m]`                           |
-| `allowed_tools`             | Allowed tools (newline-separated, replaces default set)                 | No       | See below                            |
-| `additional_allowed_tools`  | Additional tools to append (newline-separated)                          | No       | `""`                                 |
-| `claude_args`               | Additional CLI arguments                                                | No       | `""`                                 |
-| `include_fix_links`         | Include "Fix this" deep links in review feedback                        | No       | `true`                               |
-| `display_report`            | Show Claude Code Report in Step Summary (`true`/`false`/`auto`)         | No       | `auto` (enabled for private repos)   |
-| `show_full_output`          | Show full JSON output in logs (private repos only)                      | No       | `false`                              |
-| `marketplace_url`           | Git URL of the plugin marketplace                                       | No       | `https://github.com/ncaq/konoka.git` |
-| `plugin_name`               | Plugin identifier within the marketplace                                | No       | `kyosei@konoka`                      |
+All inputs are optional.
+
+#### Authentication
+
+##### `claude_code_oauth_token`
+
+Default: `""`
+
+Claude Code OAuth token.
+
+##### `anthropic_api_key`
+
+Default: `""`
+
+Anthropic API key (alternative to OAuth token).
+
+##### `use_bedrock`
+
+Default: `false`
+
+Use Amazon Bedrock with OIDC authentication.
+
+##### `use_vertex`
+
+Default: `false`
+
+Use Google Vertex AI with OIDC authentication.
+
+##### `use_foundry`
+
+Default: `false`
+
+Use Microsoft Foundry with OIDC authentication.
+
+##### `custom_github_token`
+
+Default: `""`
+
+GitHub token for API access.
+If omitted, claude-code-action uses Claude GitHub App token (claude[bot]).
+Provide explicitly to use a custom token or github.token instead.
+Named custom_github_token to avoid the reserved github_token input name.
+
+#### Access control
+
+##### `allowed_bots`
+
+Default: `*`
+
+Comma-separated list of allowed bot usernames, or `*` to allow all bots.
+Defaults to `*` because bots are not inherently more dangerous than humans.
+
+##### `allowed_non_write_users`
+
+Default: `""`
+
+Comma-separated list of users without write permission who are allowed to trigger Claude,
+or `*` to allow all. Only works when `custom_github_token` is provided.
+Enables bubblewrap sandbox and env scrubbing for safety.
+
+##### `include_comments_by_actor`
+
+Default: `""`
+
+Filter to include only comments from specific actors.
+Supports wildcards (e.g. `*[bot]`). Empty means include all.
+
+##### `exclude_comments_by_actor`
+
+Default: `""`
+
+Filter to exclude comments from specific actors.
+Supports wildcards. Exclusion takes precedence over inclusion.
+
+##### `additional_permissions`
+
+Default: `""`
+
+Additional GitHub permissions for the App token (newline-separated `key: value`).
+Example: `actions: read` enables CI/CD failure analysis.
+Only effective with OIDC token exchange (ignored when `custom_github_token` is set).
+
+##### `settings`
+
+Default: `""`
+
+Claude Code settings as a JSON string or path to a JSON file.
+Merged with existing settings (input takes precedence).
+Can configure hooks, env, MCP settings, etc.
+
+#### Claude Code configuration
+
+##### `model`
+
+Default: `opus[1m]`
+
+Claude model to use.
+
+##### `allowed_tools`
+
+Default: see below.
+
+Allowed tools for Claude Code (newline-separated, replaces default set).
+The defaults broadly allow tools the review agent is likely to need.
+gh api is included because MCP sometimes fails to fetch inline comments.
+
+##### `additional_allowed_tools`
+
+Default: `""`
+
+Additional allowed tools to append to allowed_tools (newline-separated).
+
+##### `claude_args`
+
+Default: `""`
+
+Additional arguments to pass to Claude CLI (appended after --model and --allowed-tools).
+
+#### UI control
+
+##### `include_fix_links`
+
+Default: `true`
+
+Include "Fix this" deep links in PR review feedback.
+
+##### `display_report`
+
+Default: `auto`
+
+Display Claude Code Report in GitHub Step Summary.
+Useful for understanding what Claude did during the review.
+`auto` (default) enables it only for private repositories.
+Can be explicitly set to `true` on public repositories if secrets are properly managed.
+
+##### `show_full_output`
+
+Default: `false`
+
+Show full Claude Code JSON output in Actions logs.
+May contain secrets in tool results; use only for debugging.
+Ignored on public repositories to prevent secret leakage.
+
+#### Marketplace and plugin
+
+##### `marketplace_url`
+
+Default: `https://github.com/ncaq/konoka.git`
+
+Git URL of the plugin marketplace.
+
+##### `plugin_name`
+
+Default: `kyosei@konoka`
+
+Plugin identifier within the marketplace.
 
 #### Default allowed tools
 
