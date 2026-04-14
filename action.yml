@@ -141,9 +141,11 @@ inputs:
     required: false
     default: "https://github.com/ncaq/konoka.git"
   plugin_name:
-    description: Plugin identifier within the marketplace
+    description: Plugin identifier within the marketplace (newline-separated for multiple)
     required: false
-    default: "kyosei@konoka"
+    default: |-
+      kyosei@konoka
+      research@konoka
 
 outputs:
   execution_file:

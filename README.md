@@ -366,7 +366,7 @@ Git URL of the plugin marketplace.
 
 ##### `plugin_name`
 
-Default: `kyosei@konoka`
+Default: `kyosei@konoka` and `research@konoka` (newline-separated)
 
 Plugin identifier within the marketplace.
 
