@@ -143,7 +143,9 @@ inputs:
   plugin_name:
     description: Plugin identifier within the marketplace
     required: false
-    default: "kyosei@konoka"
+    default: |-
+      kyosei@konoka
+      research@konoka
 
 outputs:
   execution_file:

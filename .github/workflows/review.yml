@@ -156,7 +156,9 @@ on:
         description: Plugin identifier within the marketplace
         type: string
         required: false
-        default: "kyosei@konoka"
+        default: |-
+          kyosei@konoka
+          research@konoka
 
       # Workflow configuration
       runs-on:
