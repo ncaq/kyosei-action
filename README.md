@@ -380,6 +380,7 @@ allowed_tools: |
   Bash(gh issue:*)
   Bash(gh pr:*)
   Bash(gh search:*)
+  Bash(node:*)
   Glob
   Grep
   Read
