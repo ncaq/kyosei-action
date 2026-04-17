@@ -263,7 +263,7 @@ runs:
     - name: Run Kyosei
       id: claude-review
       continue-on-error: true
-      uses: anthropics/claude-code-action@657fb7c9c986158a19624b357bcbc8c6deb83598 # v1.0.92
+      uses: anthropics/claude-code-action@c3d45e8e941e1b2ad7b278c57482d9c5bf1f35b3 # v1.0.99
       with:
         claude_code_oauth_token: ${{ inputs.claude_code_oauth_token }}
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
