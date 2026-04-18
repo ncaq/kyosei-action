@@ -232,7 +232,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: ${{ inputs['fetch-depth'] }}
-      - uses: ncaq/kyosei-action@v1.2.2 # zizmor: ignore[unpinned-uses] self-reference; immutable releases make tag pinning safe
+      - uses: ncaq/kyosei-action@744fa3894b1210f5238e7ed65599959fd1a53bdf # v1.2.2 # zizmor: ignore[unpinned-uses] self-reference; immutable releases make tag pinning safe
         with:
           claude_code_oauth_token: ${{ secrets.claude_code_oauth_token }}
           anthropic_api_key: ${{ secrets.anthropic_api_key }}
