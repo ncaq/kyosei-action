@@ -1,4 +1,11 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>ncaq/renovate-config"]
+  "extends": ["github>ncaq/renovate-config"],
+  "packageRules": [
+    {
+      "description": "self-reference; hash is unknown until after merge, and immutable releases make tag pinning safe",
+      "matchPackageNames": ["ncaq/kyosei-action"],
+      "enabled": false
+    }
+  ]
 }
