@@ -129,12 +129,12 @@ jobs:
 Most Composite Action inputs can be passed via `with:`.
 The Reusable Workflow additionally accepts the following inputs:
 
-| Name                   | Description                                                                | Default          |
-| ---------------------- | -------------------------------------------------------------------------- | ---------------- |
-| `runs-on`              | Runner label(s) as JSON                                                    | `"ubuntu-24.04"` |
-| `timeout-minutes`      | Job timeout in minutes                                                     | `30`             |
-| `fetch-depth`          | Number of commits to fetch                                                 | `50`             |
-| `self_hosted_packages` | Packages to install via apt-get on self-hosted runners (newline-separated) | See below        |
+| Name                   | Description                                                                | Default        |
+| ---------------------- | -------------------------------------------------------------------------- | -------------- |
+| `runs-on`              | Runner label(s) (plain string, JSON string/array/object)                   | `ubuntu-24.04` |
+| `timeout-minutes`      | Job timeout in minutes                                                     | `30`           |
+| `fetch-depth`          | Number of commits to fetch                                                 | `50`           |
+| `self_hosted_packages` | Packages to install via apt-get on self-hosted runners (newline-separated) | See below      |
 
 ### Self-hosted runners
 
@@ -161,17 +161,24 @@ On GitHub-hosted runners this step is always skipped regardless of the input val
 
 ### `runs-on` format
 
-`runs-on` is parsed with `fromJSON()`, so the value must be valid JSON.
-YAML double quotes are stripped by the YAML parser, so you need to nest JSON quotes inside YAML single quotes:
+`runs-on` accepts a plain string, a JSON-quoted string, a JSON array, or a JSON object:
 
 ```yaml
-# Single label
+# Single label (plain string)
+with:
+  runs-on: ubuntu-24.04
+
+# Single label (JSON string — also works)
 with:
   runs-on: '"ubuntu-24.04"'
 
-# Multiple labels
+# Multiple labels (JSON array)
 with:
   runs-on: '["self-hosted", "linux"]'
+
+# Runner group with labels (JSON object)
+with:
+  runs-on: '{"group":"my-group","labels":["x64"]}'
 ```
 
 See the Composite Action section below for the full input list.
