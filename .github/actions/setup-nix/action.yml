@@ -22,7 +22,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: cachix/install-nix-action@4e002c8ec80594ecd40e759629461e26c8abed15 # v31.9.0
+    - uses: cachix/install-nix-action@616559265b40713947b9c190a8ff4b507b5df49b # v31.10.4
       with:
         # セルフホストランナーでうっかり外部からの悪意あるPRを実行許可してしまい、
         # flake.nixの設定を受け入れると好きなキャッシュを入れられたりしてセキュリティリスクがあるため、
@@ -41,7 +41,7 @@ runs:
         skipPush: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
 
     - name: Setup niks3 cache
-      uses: aleadag/niks3-action@ea2e7c1e92316f5da40a3b6fa867313a3e176fd3 # v0.4.2
+      uses: aleadag/niks3-action@8935c349a257dfc311834684bfbd4ab6c4ce6c86 # v0.5.0
       with:
         endpoint: "${{ inputs.niks3-endpoint }}"
         use-oidc: true
