@@ -131,7 +131,7 @@ The Reusable Workflow additionally accepts the following inputs:
 
 | Name                   | Description                                                                | Default        |
 | ---------------------- | -------------------------------------------------------------------------- | -------------- |
-| `runs-on`              | Runner label(s) (plain string or JSON)                                     | `ubuntu-24.04` |
+| `runs-on`              | Runner label(s) (plain string, JSON string/array/object)                   | `ubuntu-24.04` |
 | `timeout-minutes`      | Job timeout in minutes                                                     | `30`           |
 | `fetch-depth`          | Number of commits to fetch                                                 | `50`           |
 | `self_hosted_packages` | Packages to install via apt-get on self-hosted runners (newline-separated) | See below      |
@@ -161,7 +161,7 @@ On GitHub-hosted runners this step is always skipped regardless of the input val
 
 ### `runs-on` format
 
-`runs-on` accepts a plain string, a JSON-quoted string, or a JSON array:
+`runs-on` accepts a plain string, a JSON-quoted string, a JSON array, or a JSON object:
 
 ```yaml
 # Single label (plain string)
@@ -175,6 +175,10 @@ with:
 # Multiple labels (JSON array)
 with:
   runs-on: '["self-hosted", "linux"]'
+
+# Runner group with labels (JSON object)
+with:
+  runs-on: '{"group":"my-group","labels":["x64"]}'
 ```
 
 See the Composite Action section below for the full input list.
