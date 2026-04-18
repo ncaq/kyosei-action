@@ -164,12 +164,13 @@ on:
       # Workflow configuration
       runs-on:
         description: >-
-          Runner label(s) for the job. Must be a valid JSON value because it is parsed with fromJSON().
-          A single label ("ubuntu-24.04") or an array (["self-hosted", "linux"]) are both accepted.
-          Note: bare strings without quotes (e.g. ubuntu-24.04) will fail.
+          Runner label(s) for the job.
+          A single label can be written as a plain string (e.g. ubuntu-24.04)
+          or a JSON string (e.g. "ubuntu-24.04").
+          Multiple labels require a JSON array (e.g. ["self-hosted", "linux"]).
         type: string
         required: false
-        default: '"ubuntu-24.04"'
+        default: ubuntu-24.04
       timeout-minutes:
         description: Job timeout in minutes. Set as a safeguard against hangs.
         type: number
@@ -209,7 +210,7 @@ concurrency:
 jobs:
   kyosei:
     name: review
-    runs-on: ${{ fromJSON(inputs['runs-on']) }}
+    runs-on: ${{ fromJSON(startsWith(inputs['runs-on'], '"') && inputs['runs-on'] || startsWith(inputs['runs-on'], '[') && inputs['runs-on'] || format('"{0}"', inputs['runs-on'])) }}
     # Claude GitHub App manages its own token, so only minimal permissions are needed.
     # If the caller passes custom_github_token explicitly, additional permissions
     # (e.g. pull-requests: write) must be granted by the caller.
