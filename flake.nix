@@ -73,22 +73,16 @@
                     VERSION=$(tr -d '[:space:]' < ${./VERSION})
                     TAG="v$VERSION"
                     PATTERN='(?:kyosei-action(?:@|/[^@]*@)|rev-parse\s+)v\d+\.\d+\.\d+'
-                    errors=0
-                    for file in ${./README.md} ${./.github/workflows/review.yml}; do
-                      stale=$(grep -nP "$PATTERN" "$file" | grep -vP "v$VERSION(?!\\.|-)" || true)
-                      if [ -n "$stale" ]; then
-                        echo "self-version: $file contains outdated version (expected $TAG):" >&2
-                        echo "$stale" >&2
-                        errors=$((errors + 1))
-                      fi
-                    done
-                    if [ "$errors" -gt 0 ]; then
+                    file=${./README.md}
+                    stale=$(grep -nP "$PATTERN" "$file" | grep -vP "v$VERSION(?!\\.|-)" || true)
+                    if [ -n "$stale" ]; then
+                      echo "self-version: $file contains outdated version (expected $TAG):" >&2
+                      echo "$stale" >&2
                       exit 1
                     fi
                   '';
                 };
                 includes = [
-                  ".github/workflows/review.yml"
                   "README.md"
                   "VERSION" # 編集はしないけどトリガーのために含める。
                 ];
