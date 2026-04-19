@@ -414,16 +414,16 @@ allowed_tools: |
 The full list of GitHub MCP tools includes all read-only tools from
 [github-mcp-server](https://github.com/github/github-mcp-server) v0.17.1:
 
-- Context (user profile, teams)
-- Repos (commits, file contents, branches, tags, releases)
-- Issues (details, comments, sub-issues)
-- Pull requests (details, diff, files, reviews, status)
-- Users (search)
-- Code security (code scanning alerts)
-- Dependabot (alerts)
-- Secret scanning (alerts)
-- Discussions (details, comments, categories)
-- Actions (workflow runs, jobs, logs)
+- Actions
+- Code
+- Context
+- Dependabot
+- Discussions
+- Issues
+- Pull
+- Repos
+- Secret
+- Users
 
 See [`action.yml`](action.yml) for the complete list.
 
