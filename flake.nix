@@ -60,6 +60,39 @@
                 command = pkgs.editorconfig-checker;
                 includes = [ "*" ];
               };
+              self-version = {
+                command = pkgs.writeShellApplication {
+                  name = "self-version";
+                  runtimeInputs = with pkgs; [
+                    coreutils
+                    gnugrep
+                  ];
+                  # treefmtの引数は無視しますが数が少ないのでこちらの方がシンプル。
+                  # 一応必要なキャッシュは働くので単にcheckにするよりは効率的。
+                  text = ''
+                    VERSION=$(tr -d '[:space:]' < ${./VERSION})
+                    TAG="v$VERSION"
+                    PATTERN='(?:kyosei-action(?:@|/[^@]*@)|rev-parse\s+)v\d+\.\d+\.\d+'
+                    errors=0
+                    for file in ${./README.md} ${./.github/workflows/review.yml}; do
+                      stale=$(grep -nP "$PATTERN" "$file" | grep -vP "v$VERSION(?!\\.|-)" || true)
+                      if [ -n "$stale" ]; then
+                        echo "self-version: $file contains outdated version (expected $TAG):" >&2
+                        echo "$stale" >&2
+                        errors=$((errors + 1))
+                      fi
+                    done
+                    if [ "$errors" -gt 0 ]; then
+                      exit 1
+                    fi
+                  '';
+                };
+                includes = [
+                  ".github/workflows/review.yml"
+                  "README.md"
+                  "VERSION" # 編集はしないけどトリガーのために含める。
+                ];
+              };
               zizmor.options = [ "--pedantic" ];
             };
           };
