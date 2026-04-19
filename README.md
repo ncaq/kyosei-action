@@ -353,7 +353,9 @@ Default: `auto`
 Display Claude Code Report in GitHub Step Summary.
 Useful for understanding what Claude did during the review.
 `auto` (default) enables it only for private repositories.
-Can be explicitly set to `true` on public repositories if secrets are properly managed.
+`always` enables it regardless of repository visibility.
+`never` disables it entirely.
+`true`/`false` are accepted as aliases for backward compatibility.
 
 ##### `show_full_output`
 
