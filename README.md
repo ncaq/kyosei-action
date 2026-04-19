@@ -326,7 +326,7 @@ Allowed tools for Claude Code (newline-separated, replaces default set).
 The defaults broadly allow tools the review agent is likely to need.
 GitHub MCP tools must be listed individually
 with the full `mcp__github__<tool_name>` form
-(note the trailing __ separator after "github").
+(note the trailing `__` separator after "github").
 The bare `mcp__github` prefix does NOT match
 claude-code-action's `startsWith("mcp__github__")`
 check that activates the Docker-based GitHub MCP server.
