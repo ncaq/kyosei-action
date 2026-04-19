@@ -82,7 +82,9 @@
                         errors=$((errors + 1))
                       fi
                     done
-                    exit "$errors"
+                    if [ "$errors" -gt 0 ]; then
+                      exit 1
+                    fi
                   '';
                 };
                 includes = [
