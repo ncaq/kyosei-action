@@ -89,7 +89,13 @@ inputs:
     description: >-
       Allowed tools for Claude Code (newline-separated, replaces default set).
       The defaults broadly allow tools the review agent is likely to need.
-      gh api is included because MCP sometimes fails to fetch inline comments.
+      GitHub MCP tools must be listed individually
+      with the full `mcp__github__<tool_name>` form
+      (note the trailing `__` separator after "github").
+      The bare `mcp__github` prefix does NOT match
+      claude-code-action's `startsWith("mcp__github__")`
+      check that activates the Docker-based GitHub MCP server.
+      gh api is also included because MCP sometimes fails to fetch inline comments.
     required: false
     default: |
       Bash(gh api *issues/*/comments*)
@@ -104,7 +110,50 @@ inputs:
       Read
       WebFetch
       WebSearch
-      mcp__github
+      mcp__github__get_code_scanning_alert
+      mcp__github__get_commit
+      mcp__github__get_dependabot_alert
+      mcp__github__get_discussion
+      mcp__github__get_discussion_comments
+      mcp__github__get_file_contents
+      mcp__github__get_issue
+      mcp__github__get_issue_comments
+      mcp__github__get_job_logs
+      mcp__github__get_latest_release
+      mcp__github__get_me
+      mcp__github__get_pull_request
+      mcp__github__get_pull_request_diff
+      mcp__github__get_pull_request_files
+      mcp__github__get_pull_request_review_comments
+      mcp__github__get_pull_request_reviews
+      mcp__github__get_pull_request_status
+      mcp__github__get_release_by_tag
+      mcp__github__get_secret_scanning_alert
+      mcp__github__get_tag
+      mcp__github__get_team_members
+      mcp__github__get_teams
+      mcp__github__get_workflow_run
+      mcp__github__list_branches
+      mcp__github__list_code_scanning_alerts
+      mcp__github__list_commits
+      mcp__github__list_dependabot_alerts
+      mcp__github__list_discussion_categories
+      mcp__github__list_discussions
+      mcp__github__list_issue_types
+      mcp__github__list_issues
+      mcp__github__list_pull_requests
+      mcp__github__list_releases
+      mcp__github__list_secret_scanning_alerts
+      mcp__github__list_sub_issues
+      mcp__github__list_tags
+      mcp__github__list_workflow_jobs
+      mcp__github__list_workflow_runs
+      mcp__github__list_workflows
+      mcp__github__search_code
+      mcp__github__search_issues
+      mcp__github__search_pull_requests
+      mcp__github__search_repositories
+      mcp__github__search_users
       mcp__github_inline_comment__create_inline_comment
   additional_allowed_tools:
     description: Additional allowed tools to append to allowed_tools (newline-separated)
