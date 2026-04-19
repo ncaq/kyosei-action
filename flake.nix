@@ -67,6 +67,8 @@
                     coreutils
                     gnugrep
                   ];
+                  # treefmtの引数は無視しますが数が少ないのでこちらの方がシンプル。
+                  # 一応必要なキャッシュは働くので単にcheckにするよりは効率的。
                   text = ''
                     VERSION=$(tr -d '[:space:]' < ${./VERSION})
                     TAG="v$VERSION"
@@ -86,7 +88,7 @@
                 includes = [
                   ".github/workflows/review.yml"
                   "README.md"
-                  "VERSION"
+                  "VERSION" # 編集はしないけどトリガーのために含める。
                 ];
               };
               zizmor.options = [ "--pedantic" ];
