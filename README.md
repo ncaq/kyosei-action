@@ -406,7 +406,7 @@ allowed_tools: |
   mcp__github__get_file_contents
   mcp__github__get_issue
   mcp__github__get_pull_request
-  ... (all read-only GitHub MCP tools)
+  # ... (all read-only GitHub MCP tools)
   mcp__github__search_users
   mcp__github_inline_comment__create_inline_comment
 ```
