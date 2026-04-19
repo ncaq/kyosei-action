@@ -80,7 +80,7 @@ Paste the token when prompted.
 
 This project follows immutable releases:
 once a version tag is published, it is never moved or overwritten.
-Version tags such as `@v1.4.0` are safe to use as-is.
+Version tags such as `kyosei-action@v1.4.0` are safe to use as-is.
 
 If your policy requires pinning to a commit hash rather than a tag,
 you need the commit SHA, not the tag object SHA.
