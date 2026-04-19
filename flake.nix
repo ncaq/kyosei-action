@@ -84,9 +84,9 @@
                   '';
                 };
                 includes = [
-                  "VERSION"
-                  "README.md"
                   ".github/workflows/review.yml"
+                  "README.md"
+                  "VERSION"
                 ];
               };
               zizmor.options = [ "--pedantic" ];
