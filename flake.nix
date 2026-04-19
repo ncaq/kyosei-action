@@ -60,6 +60,35 @@
                 command = pkgs.editorconfig-checker;
                 includes = [ "*" ];
               };
+              self-version = {
+                command = pkgs.writeShellApplication {
+                  name = "self-version";
+                  runtimeInputs = with pkgs; [
+                    coreutils
+                    gnugrep
+                  ];
+                  text = ''
+                    VERSION=$(tr -d '[:space:]' < ${./VERSION})
+                    TAG="v$VERSION"
+                    PATTERN='(?:kyosei-action(?:@|/[^@]*@)|rev-parse\s+)v\d+\.\d+\.\d+'
+                    errors=0
+                    for file in ${./README.md} ${./.github/workflows/review.yml}; do
+                      stale=$(grep -nP "$PATTERN" "$file" | grep -vF "$TAG" || true)
+                      if [ -n "$stale" ]; then
+                        echo "self-version: $file contains outdated version (expected $TAG):" >&2
+                        echo "$stale" >&2
+                        errors=$((errors + 1))
+                      fi
+                    done
+                    exit "$errors"
+                  '';
+                };
+                includes = [
+                  "VERSION"
+                  "README.md"
+                  ".github/workflows/review.yml"
+                ];
+              };
               zizmor.options = [ "--pedantic" ];
             };
           };
