@@ -324,7 +324,9 @@ Default: see below.
 
 Allowed tools for Claude Code (newline-separated, replaces default set).
 The defaults broadly allow tools the review agent is likely to need.
-gh api is included because MCP sometimes fails to fetch inline comments.
+GitHub MCP tools use `mcp__github__` prefix (with double underscore)
+to trigger claude-code-action's Docker-based GitHub MCP server setup.
+gh api is also included because MCP sometimes fails to fetch inline comments.
 
 ##### `additional_allowed_tools`
 
@@ -395,9 +397,31 @@ allowed_tools: |
   Read
   WebFetch
   WebSearch
-  mcp__github
+  mcp__github__get_me
+  mcp__github__get_commit
+  mcp__github__get_file_contents
+  mcp__github__get_issue
+  mcp__github__get_pull_request
+  ... (all read-only GitHub MCP tools)
+  mcp__github__search_users
   mcp__github_inline_comment__create_inline_comment
 ```
+
+The full list of GitHub MCP tools includes all read-only tools from
+[github-mcp-server](https://github.com/github/github-mcp-server) v0.17.1:
+
+- Context (user profile, teams)
+- Repos (commits, file contents, branches, tags, releases)
+- Issues (details, comments, sub-issues)
+- Pull requests (details, diff, files, reviews, status)
+- Users (search)
+- Code security (code scanning alerts)
+- Dependabot (alerts)
+- Secret scanning (alerts)
+- Discussions (details, comments, categories)
+- Actions (workflow runs, jobs, logs)
+
+See [`action.yml`](action.yml) for the complete list.
 
 To add tools without replacing the defaults, use `additional_allowed_tools`:
 
