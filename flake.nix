@@ -75,7 +75,7 @@
                     PATTERN='(?:kyosei-action(?:@|/[^@]*@)|rev-parse\s+)v\d+\.\d+\.\d+'
                     errors=0
                     for file in ${./README.md} ${./.github/workflows/review.yml}; do
-                      stale=$(grep -nP "$PATTERN" "$file" | grep -vF "$TAG" || true)
+                      stale=$(grep -nP "$PATTERN" "$file" | grep -vP "v$VERSION(?!\\.|-)" || true)
                       if [ -n "$stale" ]; then
                         echo "self-version: $file contains outdated version (expected $TAG):" >&2
                         echo "$stale" >&2
