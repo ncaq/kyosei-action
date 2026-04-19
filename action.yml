@@ -125,7 +125,9 @@ inputs:
       Display Claude Code Report in GitHub Step Summary.
       Useful for understanding what Claude did during the review.
       "auto" (default) enables it only for private repositories.
-      Can be explicitly set to "true" on public repositories if secrets are properly managed.
+      "always" enables it regardless of repository visibility.
+      "never" disables it entirely.
+      "true"/"false" are accepted as aliases for backward compatibility.
     required: false
     default: "auto"
   show_full_output:
@@ -236,6 +238,27 @@ runs:
         echo "All inputs valid."
         echo "::endgroup::"
 
+    - name: Resolve display_report
+      id: resolve-display-report
+      shell: bash
+      env:
+        DISPLAY_REPORT: ${{ inputs.display_report }}
+        IS_PRIVATE: ${{ github.event.repository.private }}
+      run: |
+        # Normalize legacy values.
+        case "$DISPLAY_REPORT" in
+          true)  DISPLAY_REPORT="always" ;;
+          false) DISPLAY_REPORT="never" ;;
+        esac
+        # Resolve "auto" based on repository visibility.
+        case "$DISPLAY_REPORT" in
+          always) enabled="true" ;;
+          never)  enabled="false" ;;
+          auto)   enabled="$IS_PRIVATE" ;;
+          *)      echo "::error::Unknown display_report value: $DISPLAY_REPORT"; exit 1 ;;
+        esac
+        echo "enabled=$enabled" >> "$GITHUB_OUTPUT"
+
     - name: Build allowed tools list
       id: build-allowed-tools
       shell: bash
@@ -278,7 +301,7 @@ runs:
         additional_permissions: ${{ inputs.additional_permissions }}
         settings: ${{ inputs.settings }}
         include_fix_links: ${{ inputs.include_fix_links == 'true' && 'true' || 'false' }}
-        display_report: ${{ (inputs.display_report == 'auto' && github.event.repository.private || inputs.display_report == 'true') && 'true' || 'false' }}
+        display_report: ${{ steps.resolve-display-report.outputs.enabled }}
         show_full_output: ${{ (inputs.show_full_output == 'true' && github.event.repository.private) && 'true' || 'false' }}
         claude_args: >-
           --model "${{ inputs.model }}"
