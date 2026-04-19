@@ -108,6 +108,7 @@ inputs:
       Glob
       Grep
       Read
+      Skill
       WebFetch
       WebSearch
       mcp__github__get_code_scanning_alert
