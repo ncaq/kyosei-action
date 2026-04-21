@@ -213,6 +213,21 @@ on:
           kyosei@konoka
           research@konoka
 
+      # Self-hosted runner support
+      self_hosted_packages:
+        description: >-
+          Newline-separated list of packages to install via apt-get on self-hosted runners.
+          Passed through to kyosei-action.
+          Installation runs only when the runner is self-hosted and apt-get is available.
+          Set to an empty string to skip installation entirely.
+        type: string
+        required: false
+        default: |
+          curl
+          gh
+          git
+          zstd
+
       # Workflow configuration
       runs-on:
         description: >-
@@ -236,20 +251,6 @@ on:
         type: number
         required: false
         default: 50
-
-      # Self-hosted runner support
-      self_hosted_packages:
-        description: >-
-          Newline-separated list of packages to install via apt-get on self-hosted runners.
-          Installation runs only when the runner environment is "self-hosted".
-          Set to an empty string to skip installation entirely.
-        type: string
-        required: false
-        default: |
-          curl
-          gh
-          git
-          zstd
 
 permissions: {}
 
@@ -277,21 +278,11 @@ jobs:
       id-token: write # Required for Claude Code Action OIDC authentication
     timeout-minutes: ${{ inputs['timeout-minutes'] }}
     steps:
-      - name: Install packages for self-hosted runner
-        if: runner.environment == 'self-hosted' && inputs.self_hosted_packages != ''
-        env:
-          PACKAGES: ${{ inputs.self_hosted_packages }}
-        shell: bash
-        run: |
-          sudo apt-get update -qq
-          # Convert newline-separated list to a bash array, then install.
-          mapfile -t pkgs < <(echo "$PACKAGES" | sed '/^[[:space:]]*$/d')
-          sudo apt-get install -y --no-install-recommends "${pkgs[@]}"
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
           fetch-depth: ${{ inputs['fetch-depth'] }}
-      - uses: ncaq/kyosei-action@v1.5.0 # zizmor: ignore[unpinned-uses] self-reference; immutable releases make tag pinning safe
+      - uses: ncaq/kyosei-action@v1.5.1 # zizmor: ignore[unpinned-uses] self-reference; immutable releases make tag pinning safe
         with:
           claude_code_oauth_token: ${{ secrets.claude_code_oauth_token }}
           anthropic_api_key: ${{ secrets.anthropic_api_key }}
@@ -314,3 +305,4 @@ jobs:
           show_full_output: ${{ inputs.show_full_output && 'true' || 'false' }}
           marketplace_url: ${{ inputs.marketplace_url }}
           plugin_name: ${{ inputs.plugin_name }}
+          self_hosted_packages: ${{ inputs.self_hosted_packages }}

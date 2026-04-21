@@ -80,7 +80,7 @@ Paste the token when prompted.
 
 This project follows immutable releases:
 once a version tag is published, it is never moved or overwritten.
-Version tags such as `kyosei-action@v1.5.0` are safe to use as-is.
+Version tags such as `kyosei-action@v1.5.1` are safe to use as-is.
 
 If your policy requires pinning to a commit hash rather than a tag,
 you need the commit SHA, not the tag object SHA.
@@ -90,10 +90,10 @@ GitHub Actions requires the commit SHA.
 Use `^{commit}` to dereference the tag:
 
 ```console
-git rev-parse v1.5.0^{commit}
+git rev-parse v1.5.1^{commit}
 ```
 
-Do not use `git rev-parse v1.5.0` without `^{commit}`.
+Do not use `git rev-parse v1.5.1` without `^{commit}`.
 For annotated tags it returns the tag object SHA, which GitHub Actions cannot resolve.
 
 ## Reusable Workflow
@@ -121,7 +121,7 @@ jobs:
     permissions:
       contents: read # Read repository contents for checkout
       id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
-    uses: ncaq/kyosei-action/.github/workflows/review.yml@v1.5.0
+    uses: ncaq/kyosei-action/.github/workflows/review.yml@v1.5.1
     secrets:
       claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
@@ -129,35 +129,11 @@ jobs:
 Most Composite Action inputs can be passed via `with:`.
 The Reusable Workflow additionally accepts the following inputs:
 
-| Name                   | Description                                                                | Default        |
-| ---------------------- | -------------------------------------------------------------------------- | -------------- |
-| `runs-on`              | Runner label(s) (plain string, JSON string/array/object)                   | `ubuntu-24.04` |
-| `timeout-minutes`      | Job timeout in minutes                                                     | `30`           |
-| `fetch-depth`          | Number of commits to fetch                                                 | `50`           |
-| `self_hosted_packages` | Packages to install via apt-get on self-hosted runners (newline-separated) | See below      |
-
-### Self-hosted runners
-
-When `runner.environment` is `self-hosted` and `self_hosted_packages` is non-empty,
-the workflow automatically installs the listed packages via `apt-get` before checkout.
-The default list covers the minimum programs required by kyosei-action and claude-code-action:
-
-```yaml
-self_hosted_packages: |
-  curl
-  gh
-  git
-  zstd
-```
-
-To skip automatic installation, pass an empty string:
-
-```yaml
-with:
-  self_hosted_packages: ""
-```
-
-On GitHub-hosted runners this step is always skipped regardless of the input value.
+| Name              | Description                                              | Default        |
+| ----------------- | -------------------------------------------------------- | -------------- |
+| `runs-on`         | Runner label(s) (plain string, JSON string/array/object) | `ubuntu-24.04` |
+| `timeout-minutes` | Job timeout in minutes                                   | `30`           |
+| `fetch-depth`     | Number of commits to fetch                               | `50`           |
 
 ### `runs-on` format
 
@@ -213,7 +189,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 50
-      - uses: ncaq/kyosei-action@v1.5.0
+      - uses: ncaq/kyosei-action@v1.5.1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
@@ -385,6 +361,40 @@ Default: `kyosei@konoka` and `research@konoka` (newline-separated)
 
 Plugin identifier within the marketplace.
 
+#### Self-hosted runner support
+
+##### `self_hosted_packages`
+
+Default:
+
+```yaml
+self_hosted_packages: |
+  curl
+  gh
+  git
+  zstd
+```
+
+Newline-separated list of packages to install via `apt-get` on self-hosted runners.
+When the runner is self-hosted and `apt-get` is available, the listed packages are installed automatically.
+On runners without `apt-get` (e.g. Fedora, NixOS), installation is skipped
+and required commands must be pre-installed.
+
+After installation (or skip), the action verifies that `curl`, `gh`, `git`, and `node` are available,
+and fails with an error if any are missing.
+
+Node.js is set up separately via `actions/setup-node` and does not need to be included in this list.
+
+To skip automatic installation entirely, pass an empty string:
+
+```yaml
+with:
+  self_hosted_packages: ""
+```
+
+On GitHub-hosted runners the `apt-get` step is always skipped
+because `runner.environment` is not `self-hosted`.
+
 #### Default allowed tools
 
 ```yaml
@@ -430,7 +440,7 @@ See [`action.yml`](action.yml) for the complete list.
 To add tools without replacing the defaults, use `additional_allowed_tools`:
 
 ```yaml
-- uses: ncaq/kyosei-action@v1.5.0
+- uses: ncaq/kyosei-action@v1.5.1
   with:
     claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
     additional_allowed_tools: |
