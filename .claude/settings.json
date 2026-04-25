@@ -68,6 +68,7 @@
       "mcp__github__get_issue",
       "mcp__github__get_issue_comments",
       "mcp__github__get_job_logs",
+      "mcp__github__get_label",
       "mcp__github__get_latest_release",
       "mcp__github__get_me",
       "mcp__github__get_pull_request",

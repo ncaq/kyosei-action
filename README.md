@@ -80,7 +80,7 @@ Paste the token when prompted.
 
 This project follows immutable releases:
 once a version tag is published, it is never moved or overwritten.
-Version tags such as `kyosei-action@v1.5.1` are safe to use as-is.
+Version tags such as `kyosei-action@v2.0.0` are safe to use as-is.
 
 If your policy requires pinning to a commit hash rather than a tag,
 you need the commit SHA, not the tag object SHA.
@@ -90,10 +90,10 @@ GitHub Actions requires the commit SHA.
 Use `^{commit}` to dereference the tag:
 
 ```console
-git rev-parse v1.5.1^{commit}
+git rev-parse v2.0.0^{commit}
 ```
 
-Do not use `git rev-parse v1.5.1` without `^{commit}`.
+Do not use `git rev-parse v2.0.0` without `^{commit}`.
 For annotated tags it returns the tag object SHA, which GitHub Actions cannot resolve.
 
 ## Reusable Workflow
@@ -121,7 +121,7 @@ jobs:
     permissions:
       contents: read # Read repository contents for checkout
       id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
-    uses: ncaq/kyosei-action/.github/workflows/review.yml@v1.5.1
+    uses: ncaq/kyosei-action/.github/workflows/review.yml@v2.0.0
     secrets:
       claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
@@ -189,7 +189,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 50
-      - uses: ncaq/kyosei-action@v1.5.1
+      - uses: ncaq/kyosei-action@v2.0.0
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
@@ -299,14 +299,19 @@ Claude model to use.
 Default: see below.
 
 Allowed tools for Claude Code (newline-separated, replaces default set).
-The defaults broadly allow tools the review agent is likely to need.
+Restricted to read-only `gh` subcommands and read-only GitHub MCP tools
+so the review agent cannot modify GitHub state directly.
+
+Mutations such as posting reviews are performed by the kyosei skill
+via its Node.js implementation rather than by Claude.
+
 GitHub MCP tools must be listed individually
 with the full `mcp__github__<tool_name>` form
 (note the trailing `__` separator after "github").
+
 The bare `mcp__github` prefix does NOT match
 claude-code-action's `startsWith("mcp__github__")`
 check that activates the Docker-based GitHub MCP server.
-gh api is also included because MCP sometimes fails to fetch inline comments.
 
 ##### `additional_allowed_tools`
 
@@ -399,26 +404,41 @@ because `runner.environment` is not `self-hosted`.
 
 ```yaml
 allowed_tools: |
-  Bash(gh api *issues/*/comments*)
-  Bash(gh api *pulls/*/comments*)
-  Bash(gh api *pulls/*/reviews*)
-  Bash(gh issue:*)
-  Bash(gh pr:*)
+  Bash(gh issue list:*)
+  Bash(gh issue status:*)
+  Bash(gh issue view:*)
+  Bash(gh label list:*)
+  Bash(gh label view:*)
+  Bash(gh pr checks:*)
+  Bash(gh pr diff:*)
+  Bash(gh pr list:*)
+  Bash(gh pr status:*)
+  Bash(gh pr view:*)
+  Bash(gh release list:*)
+  Bash(gh release view:*)
+  Bash(gh repo view:*)
+  Bash(gh ruleset list:*)
+  Bash(gh ruleset view:*)
+  Bash(gh run list:*)
+  Bash(gh run view:*)
   Bash(gh search:*)
+  Bash(gh status:*)
+  Bash(gh workflow list:*)
+  Bash(gh workflow view:*)
   Bash(node:*)
   Glob
   Grep
   Read
+  Skill
   WebFetch
   WebSearch
-  mcp__github__get_me
   mcp__github__get_commit
   mcp__github__get_file_contents
   mcp__github__get_issue
+  mcp__github__get_me
   mcp__github__get_pull_request
   # ... (all read-only GitHub MCP tools)
   mcp__github__search_users
-  mcp__github_inline_comment__create_inline_comment
 ```
 
 The full list of GitHub MCP tools includes all read-only tools from
@@ -440,7 +460,7 @@ See [`action.yml`](action.yml) for the complete list.
 To add tools without replacing the defaults, use `additional_allowed_tools`:
 
 ```yaml
-- uses: ncaq/kyosei-action@v1.5.1
+- uses: ncaq/kyosei-action@v2.0.0
   with:
     claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
     additional_allowed_tools: |
