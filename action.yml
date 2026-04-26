@@ -374,6 +374,18 @@ runs:
         esac
         echo "enabled=$enabled" >> "$GITHUB_OUTPUT"
 
+    - name: Read action version
+      id: read-action-version
+      shell: bash
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        version=$(tr -d '[:space:]' < "$ACTION_PATH/VERSION")
+        if [[ -z "$version" ]]; then
+          echo "::warning::Failed to read version from $ACTION_PATH/VERSION"
+        fi
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+
     - name: Build allowed tools list
       id: build-allowed-tools
       shell: bash
@@ -402,6 +414,8 @@ runs:
       id: claude-review
       continue-on-error: true
       uses: anthropics/claude-code-action@567fe954a4527e81f132d87d1bdbcc94f7737434 # v1.0.107
+      env:
+        KYOSEI_ACTION_VERSION: ${{ steps.read-action-version.outputs.version }}
       with:
         claude_code_oauth_token: ${{ inputs.claude_code_oauth_token }}
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
