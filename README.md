@@ -87,13 +87,13 @@ you need the commit SHA, not the tag object SHA.
 Annotated tags have their own object SHA which differs from the commit SHA.
 GitHub Actions requires the commit SHA.
 
-Use `^{commit}` to dereference the tag:
+Use `git ls-remote` with `^{}` to fetch the dereferenced commit SHA without cloning the repository:
 
 ```console
-git rev-parse v2.0.1^{commit}
+git ls-remote https://github.com/ncaq/kyosei-action.git 'refs/tags/v2.0.1^{}'
 ```
 
-Do not use `git rev-parse v2.0.1` without `^{commit}`.
+Do not query `refs/tags/v2.0.1` without `^{}`.
 For annotated tags it returns the tag object SHA, which GitHub Actions cannot resolve.
 
 ## Reusable Workflow
