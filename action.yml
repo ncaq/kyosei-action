@@ -374,8 +374,11 @@ runs:
         esac
         echo "enabled=$enabled" >> "$GITHUB_OUTPUT"
 
-    - name: Read action version
-      id: read-action-version
+    # Export `$KYOSEI_ACTION_VERSION` via `$GITHUB_ENV` so it propagates to all subsequent steps in the same job,
+    # including the composite steps inside claude-code-action and the Claude CLI subprocess they spawn.
+    # Setting env: directly on the `Run Kyosei` step does not work
+    # because composite actions do not inherit step-level env from the calling step.
+    - name: Export action version
       shell: bash
       env:
         ACTION_PATH: ${{ github.action_path }}
@@ -384,7 +387,7 @@ runs:
         if [[ -z "$version" ]]; then
           echo "::warning::Failed to read version from $ACTION_PATH/VERSION"
         fi
-        echo "version=$version" >> "$GITHUB_OUTPUT"
+        echo "KYOSEI_ACTION_VERSION=$version" >> "$GITHUB_ENV"
 
     - name: Build allowed tools list
       id: build-allowed-tools
@@ -414,8 +417,6 @@ runs:
       id: claude-review
       continue-on-error: true
       uses: anthropics/claude-code-action@567fe954a4527e81f132d87d1bdbcc94f7737434 # v1.0.107
-      env:
-        KYOSEI_ACTION_VERSION: ${{ steps.read-action-version.outputs.version }}
       with:
         claude_code_oauth_token: ${{ inputs.claude_code_oauth_token }}
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
