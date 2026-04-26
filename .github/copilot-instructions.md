@@ -57,5 +57,5 @@ CLAUDE.md -> .github/copilot-instructions.md
 `VERSION`を更新するとCIが自動でリリースタグを作成するため、事前に揃えておく必要があります。
 
 - `VERSION`: バージョンの定義元(`x.y.z`形式、`v`プレフィックスなし)
-- `README.md`: 使用例やコマンド例に含まれるバージョンタグ(`@vx.y.z`形式)
+- `README.md`: コピペ可能な使用例に含まれるバージョンタグ(`@vx.y.z`形式)
 - `.github/workflows/review.yml`: セルフ参照の`uses: ncaq/kyosei-action@vx.y.z`
