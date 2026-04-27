@@ -244,8 +244,10 @@ inputs:
     required: false
     default: |
       curl
+      gawk
       gh
       git
+      jq
       zstd
 
 outputs:

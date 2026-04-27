@@ -259,8 +259,10 @@ on:
         required: false
         default: |
           curl
+          gawk
           gh
           git
+          jq
           zstd
 
       # Workflow configuration

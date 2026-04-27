@@ -374,8 +374,10 @@ Default:
 ```yaml
 self_hosted_packages: |
   curl
+  gawk
   gh
   git
+  jq
   zstd
 ```
 
