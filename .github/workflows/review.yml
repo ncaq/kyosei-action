@@ -93,10 +93,9 @@ on:
       allowed_tools:
         description: >-
           Allowed tools for Claude Code (newline-separated, replaces default set).
-          Restricted to read-only gh subcommands and read-only GitHub MCP tools
-          so the review agent cannot modify GitHub state directly.
+          Restricted to read-only commands and non-destructive tools.
           Mutations such as posting reviews are performed by the kyosei skill
-          via its Node.js implementation rather than by Claude.
+          via its Node.js implementation rather than by Claude directly.
           GitHub MCP tools must be listed individually
           with the full `mcp__github__<tool_name>` form
           (note the trailing `__` separator after "github").
@@ -106,6 +105,7 @@ on:
         type: string
         required: false
         default: |
+          Bash(awk:*)
           Bash(gh issue list:*)
           Bash(gh issue status:*)
           Bash(gh issue view:*)
@@ -127,11 +127,29 @@ on:
           Bash(gh status:*)
           Bash(gh workflow list:*)
           Bash(gh workflow view:*)
+          Bash(git blame:*)
+          Bash(git cat-file:*)
+          Bash(git describe:*)
+          Bash(git diff:*)
+          Bash(git for-each-ref:*)
+          Bash(git log:*)
+          Bash(git ls-files:*)
+          Bash(git ls-remote:*)
+          Bash(git ls-tree:*)
+          Bash(git rev-list:*)
+          Bash(git rev-parse:*)
+          Bash(git shortlog:*)
+          Bash(git show:*)
+          Bash(git show-branch:*)
+          Bash(git status:*)
+          Bash(jq:*)
           Bash(node:*)
           Glob
           Grep
           Read
           Skill
+          Task
+          TodoWrite
           WebFetch
           WebSearch
           mcp__github__get_code_scanning_alert
@@ -299,7 +317,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: ${{ inputs['fetch-depth'] }}
-      - uses: ncaq/kyosei-action@v2.0.1 # zizmor: ignore[unpinned-uses] self-reference; immutable releases make tag pinning safe
+      - uses: ncaq/kyosei-action@v2.0.2 # zizmor: ignore[unpinned-uses] self-reference; immutable releases make tag pinning safe
         with:
           claude_code_oauth_token: ${{ secrets.claude_code_oauth_token }}
           anthropic_api_key: ${{ secrets.anthropic_api_key }}
