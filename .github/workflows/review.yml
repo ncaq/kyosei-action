@@ -94,8 +94,10 @@ on:
         description: >-
           Reasoning effort level for the top-level orchestrator session
           (low, medium, high, xhigh, max).
-          Reviewer subagents have their own `effort: high` in agent frontmatter
-          and are not affected by this value.
+          The kyosei skill itself only dispatches reviewer subagents and posts JSON,
+          so a lower level reduces cost and latency without affecting review quality.
+          Reviewer subagents have their own `effort: high` in agent frontmatter,
+          which overrides this session-level value per Claude Code's agent fields spec.
           Set to an empty string to omit the flag and use the model default.
         type: string
         required: false
