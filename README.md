@@ -80,7 +80,7 @@ Paste the token when prompted.
 
 This project follows immutable releases:
 once a version tag is published, it is never moved or overwritten.
-Version tags such as `kyosei-action@v2.0.2` are safe to use as-is.
+Version tags such as `kyosei-action@v2.1.0` are safe to use as-is.
 
 If your policy requires pinning to a commit hash rather than a tag,
 you need the commit SHA, not the tag object SHA.
@@ -90,10 +90,10 @@ GitHub Actions requires the commit SHA.
 Use `git ls-remote` with `^{}` to fetch the dereferenced commit SHA without cloning the repository:
 
 ```console
-git ls-remote https://github.com/ncaq/kyosei-action.git 'refs/tags/v2.0.2^{}'
+git ls-remote https://github.com/ncaq/kyosei-action.git 'refs/tags/v2.1.0^{}'
 ```
 
-Do not query `refs/tags/v2.0.2` without `^{}`.
+Do not query `refs/tags/v2.1.0` without `^{}`.
 For annotated tags it returns the tag object SHA, which GitHub Actions cannot resolve.
 
 ## Reusable Workflow
@@ -121,7 +121,7 @@ jobs:
     permissions:
       contents: read # Read repository contents for checkout
       id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
-    uses: ncaq/kyosei-action/.github/workflows/review.yml@v2.0.2
+    uses: ncaq/kyosei-action/.github/workflows/review.yml@v2.1.0
     secrets:
       claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
@@ -189,7 +189,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 50
-      - uses: ncaq/kyosei-action@v2.0.2
+      - uses: ncaq/kyosei-action@v2.1.0
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
@@ -498,7 +498,7 @@ See [`action.yml`](action.yml) for the complete list.
 To add tools without replacing the defaults, use `additional_allowed_tools`:
 
 ```yaml
-- uses: ncaq/kyosei-action@v2.0.2
+- uses: ncaq/kyosei-action@v2.1.0
   with:
     claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
     additional_allowed_tools: |
