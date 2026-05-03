@@ -90,6 +90,18 @@ on:
         type: string
         required: false
         default: "opus[1m]"
+      effort:
+        description: >-
+          Reasoning effort level for the top-level orchestrator session
+          (low, medium, high, xhigh, max).
+          The kyosei skill itself only dispatches reviewer subagents and posts JSON,
+          so a lower level reduces cost and latency without affecting review quality.
+          Reviewer subagents have their own `effort: high` in agent frontmatter,
+          which overrides this session-level value per Claude Code's agent fields spec.
+          Set to an empty string to omit the flag and use the model default.
+        type: string
+        required: false
+        default: "medium"
       allowed_tools:
         description: >-
           Allowed tools for Claude Code (newline-separated, replaces default set).
@@ -334,6 +346,7 @@ jobs:
           additional_permissions: ${{ inputs.additional_permissions }}
           settings: ${{ inputs.settings }}
           model: ${{ inputs.model }}
+          effort: ${{ inputs.effort }}
           allowed_tools: ${{ inputs.allowed_tools }}
           additional_allowed_tools: ${{ inputs.additional_allowed_tools }}
           claude_args: ${{ inputs.claude_args }}
