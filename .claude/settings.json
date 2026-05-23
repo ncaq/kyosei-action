@@ -17,9 +17,7 @@
   },
   "enableAllProjectMcpServers": true,
   "permissions": {
-    "additionalDirectories": [
-      "~/Desktop/konoka"
-    ],
+    "additionalDirectories": ["~/Desktop/konoka"],
     "allow": [
       "Bash(action-validator:*)",
       "Bash(actionlint:*)",
