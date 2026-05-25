@@ -325,7 +325,7 @@ Set to an empty string to omit the flag and use the model default.
 
 ##### `allowed_tools`
 
-Default: see below.
+Default: see the `allowed_tools` default in [action.yml](./action.yml).
 
 Allowed tools for Claude Code (newline-separated, replaces default set).
 Restricted to read-only commands and non-destructive tools.
@@ -348,6 +348,11 @@ the `Agent` tool and the MCP servers used by the research survey agent.
 - `mcp__backlog__*` (only the read-only tools the survey agent uses)
 - `mcp__plugin_nix-tasuke_nixos`
 - `mcp__plugin_research_*`
+
+The `*` here is conceptual shorthand for explanation, not a literal value.
+claude-code-action does not necessarily honor wildcards in `allowed_tools`,
+so the actual default enumerates each tool or server individually
+(for example `mcp__backlog__get_issue` and `mcp__plugin_research_cloudflare`).
 
 The `mcp__plugin_*` servers ship with the bundled plugins and work out of the box.
 Backlog (`mcp__backlog__*`) is not bundled,
