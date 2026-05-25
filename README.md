@@ -343,7 +343,7 @@ check that activates the Docker-based GitHub MCP server.
 
 The default also allows the tools that the bundled plugins
 (kyosei and its transitive research dependency) rely on,
-including the `Agent` tool and the MCP servers that the research survey agent queries
+including the `Agent` tool and the MCP servers that the research survey agent queries:
 
 - `mcp__backlog`
 - `mcp__plugin_nix-tasuke_nixos`
