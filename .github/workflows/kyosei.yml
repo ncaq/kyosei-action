@@ -15,7 +15,7 @@ jobs:
     # Claude GitHub App manages its own token, so only minimal permissions are needed.
     permissions:
       contents: read # Read repository contents for checkout
-      id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
+      id-token: write # GitHub App token exchange via OIDC (needed regardless of auth method)
     uses: ./.github/workflows/review.yml
     with:
       # For debugging.

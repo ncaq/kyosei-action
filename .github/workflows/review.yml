@@ -215,7 +215,9 @@ on:
         required: false
         default: ""
       claude_args:
-        description: Additional arguments to pass to Claude CLI (appended after --model and --allowed-tools)
+        description: >
+          Additional arguments to pass to Claude CLI
+          (appended after --model and --allowed-tools)
         type: string
         required: false
         default: ""
@@ -281,10 +283,15 @@ on:
       runs-on:
         description: >-
           Runner label(s) for the job.
-          A single label can be written as a plain string (e.g. ubuntu-24.04)
-          or a JSON string (e.g. "ubuntu-24.04").
-          Multiple labels require a JSON array (e.g. ["self-hosted", "linux"]).
-          An object with group/labels keys (e.g. {"group":"my-group","labels":["x64"]}) is also accepted.
+          A single label can be written as a plain string
+          (e.g. ubuntu-24.04)
+          or a JSON string
+          (e.g. "ubuntu-24.04").
+          Multiple labels require a JSON array
+          (e.g. ["self-hosted", "linux"]).
+          An object with group/labels keys
+          (e.g. {"group":"my-group","labels":["x64"]})
+          is also accepted.
         type: string
         required: false
         default: ubuntu-24.04
@@ -313,15 +320,24 @@ concurrency:
 jobs:
   kyosei:
     name: review
-    # Normalize runs-on input for fromJSON():
-    #   - JSON-quoted string (starts with "): pass through
-    #   - JSON array (starts with [): pass through
-    #   - JSON object (starts with {): pass through
-    #   - Plain string: wrap in JSON quotes via format()
-    runs-on: ${{ fromJSON(startsWith(inputs['runs-on'], '"') && inputs['runs-on'] || startsWith(inputs['runs-on'], '[') && inputs['runs-on'] || startsWith(inputs['runs-on'], '{') && inputs['runs-on'] || format('"{0}"', inputs['runs-on'])) }}
+    # Normalize runs-on input for `fromJSON()`:
+    #   - JSON-quoted string (starts with `"`): pass through
+    #   - JSON array (starts with `[`): pass through
+    #   - JSON object (starts with `{`): pass through
+    #   - Plain string: wrap in JSON quotes via `format()`
+    runs-on: ${{
+      fromJSON(startsWith(inputs['runs-on'], '"') &&
+      inputs['runs-on'] ||
+      startsWith(inputs['runs-on'], '[') &&
+      inputs['runs-on'] ||
+      startsWith(inputs['runs-on'], '{') &&
+      inputs['runs-on'] ||
+      format('"{0}"', inputs['runs-on']))
+      }}
     # Claude GitHub App manages its own token, so only minimal permissions are needed.
-    # If the caller passes custom_github_token explicitly, additional permissions
-    # (e.g. pull-requests: write) must be granted by the caller.
+    # If the caller passes `custom_github_token` explicitly, additional permissions
+    # (e.g. `pull-requests: write`)
+    # must be granted by the caller.
     permissions:
       contents: read # Read repository contents for checkout
       id-token: write # Required for Claude Code Action OIDC authentication
@@ -331,7 +347,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: ${{ inputs['fetch-depth'] }}
-      - uses: ncaq/kyosei-action@v2.1.3 # zizmor: ignore[unpinned-uses] self-reference; immutable releases make tag pinning safe
+      - uses: ncaq/kyosei-action@v2.1.3 # zizmor: ignore[unpinned-uses] self-reference
         with:
           claude_code_oauth_token: ${{ secrets.claude_code_oauth_token }}
           anthropic_api_key: ${{ secrets.anthropic_api_key }}

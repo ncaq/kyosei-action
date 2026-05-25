@@ -207,7 +207,9 @@ inputs:
     required: false
     default: ""
   claude_args:
-    description: Additional arguments to pass to Claude CLI (appended after --model and --allowed-tools)
+    description: >-
+      Additional arguments to pass to Claude CLI
+      (appended after --model and --allowed-tools)
     required: false
     default: ""
 
@@ -405,8 +407,10 @@ runs:
         esac
         echo "enabled=$enabled" >> "$GITHUB_OUTPUT"
 
-    # Export `$KYOSEI_ACTION_VERSION` via `$GITHUB_ENV` so it propagates to all subsequent steps in the same job,
-    # including the composite steps inside claude-code-action and the Claude CLI subprocess they spawn.
+    # Export `$KYOSEI_ACTION_VERSION` via `$GITHUB_ENV`
+    # so it propagates to all subsequent steps in the same job,
+    # including the composite steps inside claude-code-action and
+    # the Claude CLI subprocess they spawn.
     # Setting env: directly on the `Run Kyosei` step does not work
     # because composite actions do not inherit step-level env from the calling step.
     - name: Export action version
@@ -474,8 +478,8 @@ runs:
         prompt: "Follow the user request."
 
     # If claude-code-action fails, emit a warning instead of failing the workflow.
-    # Common causes: insufficient token permissions (e.g. workflow file changes
-    # in the PR, fork PRs) or transient API errors.
+    # Common causes: insufficient token permissions
+    # (e.g. workflow file changes in the PR, fork PRs) or transient API errors.
     - name: Handle failure
       if: steps.claude-review.outcome == 'failure'
       shell: bash
