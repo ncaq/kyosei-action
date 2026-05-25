@@ -341,6 +341,14 @@ The bare `mcp__github` prefix does NOT match
 claude-code-action's `startsWith("mcp__github__")`
 check that activates the Docker-based GitHub MCP server.
 
+The default also allows the tools that the bundled plugins
+(kyosei and its transitive research dependency) rely on,
+including the `Agent` tool and the MCP servers that the research survey agent queries
+
+- `mcp__backlog`
+- `mcp__plugin_nix-tasuke_nixos`
+- `mcp__plugin_research_*`
+
 ##### `additional_allowed_tools`
 
 Default: `""`
@@ -436,63 +444,7 @@ because `runner.environment` is not `self-hosted`.
 
 #### Default allowed tools
 
-```yaml
-allowed_tools: |
-  Bash(awk:*)
-  Bash(gh issue list:*)
-  Bash(gh issue status:*)
-  Bash(gh issue view:*)
-  Bash(gh label list:*)
-  Bash(gh label view:*)
-  Bash(gh pr checks:*)
-  Bash(gh pr diff:*)
-  Bash(gh pr list:*)
-  Bash(gh pr status:*)
-  Bash(gh pr view:*)
-  Bash(gh release list:*)
-  Bash(gh release view:*)
-  Bash(gh repo view:*)
-  Bash(gh ruleset list:*)
-  Bash(gh ruleset view:*)
-  Bash(gh run list:*)
-  Bash(gh run view:*)
-  Bash(gh search:*)
-  Bash(gh status:*)
-  Bash(gh workflow list:*)
-  Bash(gh workflow view:*)
-  Bash(git blame:*)
-  Bash(git cat-file:*)
-  Bash(git describe:*)
-  Bash(git diff:*)
-  Bash(git for-each-ref:*)
-  Bash(git log:*)
-  Bash(git ls-files:*)
-  Bash(git ls-remote:*)
-  Bash(git ls-tree:*)
-  Bash(git rev-list:*)
-  Bash(git rev-parse:*)
-  Bash(git shortlog:*)
-  Bash(git show:*)
-  Bash(git show-branch:*)
-  Bash(git status:*)
-  Bash(jq:*)
-  Bash(node:*)
-  Glob
-  Grep
-  Read
-  Skill
-  Task
-  TodoWrite
-  WebFetch
-  WebSearch
-  mcp__github__get_commit
-  mcp__github__get_file_contents
-  mcp__github__get_issue
-  mcp__github__get_me
-  mcp__github__get_pull_request
-  # ... (all read-only GitHub MCP tools)
-  mcp__github__search_users
-```
+Please see [action.yml](./action.yml) of `allowed_tools` section.
 
 The full list of GitHub MCP tools includes all read-only tools from
 [github-mcp-server](https://github.com/github/github-mcp-server) v0.17.1:
@@ -507,8 +459,6 @@ The full list of GitHub MCP tools includes all read-only tools from
 - Repos
 - Secret
 - Users
-
-See [`action.yml`](action.yml) for the complete list.
 
 To add tools without replacing the defaults, use `additional_allowed_tools`:
 
