@@ -444,7 +444,7 @@ because `runner.environment` is not `self-hosted`.
 
 #### Default allowed tools
 
-Please see [action.yml](./action.yml) of `allowed_tools` section.
+Please see the `allowed_tools` section of [action.yml](./action.yml).
 
 The full list of GitHub MCP tools includes all read-only tools from
 [github-mcp-server](https://github.com/github/github-mcp-server) v0.17.1:
