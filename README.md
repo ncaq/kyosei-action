@@ -335,23 +335,24 @@ via its Node.js implementation rather than by Claude directly.
 
 ###### GitHub MCP
 
-GitHub MCP tools must be listed individually
-with the full `mcp__github__<tool_name>` form
-(note the trailing `__` separator after "github").
-
-The bare `mcp__github` prefix does NOT match
-claude-code-action's `startsWith("mcp__github__")`
-check that activates the Docker-based GitHub MCP server.
+List each GitHub MCP tool individually as `mcp__github__<tool_name>`,
+because claude-code-action only starts the GitHub MCP server
+when a tool name begins with `mcp__github__`
+(the bare `mcp__github` prefix does not work).
 
 ###### Kyosei skill MCP
 
-The default also allows the tools that the bundled plugins
-(kyosei and its transitive research dependency) rely on,
-including the `Agent` tool and the MCP servers that the research survey agent queries:
+The default also allows what the bundled plugins need:
+the `Agent` tool and the MCP servers used by the research survey agent.
 
-- `mcp__backlog`
+- `mcp__backlog__*` (only the read-only tools the survey agent uses)
 - `mcp__plugin_nix-tasuke_nixos`
 - `mcp__plugin_research_*`
+
+The `mcp__plugin_*` servers ship with the bundled plugins and work out of the box.
+Backlog (`mcp__backlog__*`) is not bundled,
+so it only works if you configure the Backlog MCP server yourself
+(for example via `.mcp.json`).
 
 ##### `additional_allowed_tools`
 
