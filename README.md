@@ -11,20 +11,30 @@ for code quality, performance, security, test coverage, and documentation accura
 
 ## Motivation
 
-The Claude Code Review workflow installed via `install-github-app` does not re-review a PR after subsequent pushes.
-Once the initial review is posted, pushing fixes in response to feedback does not trigger a new review,
+The Claude Code Review workflow installed
+via `install-github-app` does not re-review a PR after subsequent pushes.
+Once the initial review is posted,
+pushing fixes in response to feedback does not trigger a new review,
 so there is no automated way to verify that review comments have been properly addressed.
 
-Using [claude-code-action](https://github.com/anthropics/claude-code-action) directly enables per-push reviews, but introduces other problems:
+Using [claude-code-action](https://github.com/anthropics/claude-code-action)
+directly enables per-push reviews,
+but introduces other problems:
 
 - Pushing to the same PR repeatedly causes the same comments to be posted over and over
-- Comments that have already been answered with "this is intentional" or "by design" are re-posted on each push
+- Comments that have already been answered with
+  "this is intentional" or "by design" are re-posted on each push
 
-The [kyosei](https://github.com/ncaq/konoka/tree/master/plugins/kyosei) plugin solves these problems.
-It collects existing PR conversations (comments, inline comments, and review comments) before each review,
-excludes already-posted feedback, resolved comments, and comments that have been acknowledged as intentional,
+The [kyosei](https://github.com/ncaq/konoka/tree/master/plugins/kyosei) plugin
+solves these problems.
+It collects existing PR conversations (comments, inline comments, and review comments)
+before each review,
+excludes already-posted feedback,
+resolved comments,
+and comments that have been acknowledged as intentional,
 so only genuinely new feedback is provided.
-It also removes project-specific coding conventions embedded in claude-code-action's default review agents.
+It also removes project-specific coding conventions embedded
+in claude-code-action's default review agents.
 For example, claude-code-action's code-quality-reviewer includes the instruction
 "Prefer `type` over `interface` as per project standards",
 which is applied even to projects that do not use TypeScript.
@@ -44,7 +54,8 @@ For simpler setup, use the Reusable Workflow.
 ## Authentication
 
 At least one of the following is required.
-Typically you only need one; if multiple are provided they are passed through to claude-code-action as-is.
+Typically you only need one;
+if multiple are provided they are passed through to claude-code-action as-is.
 
 - `claude_code_oauth_token` - Claude Code OAuth token
 - `anthropic_api_key` - Anthropic API key
@@ -120,7 +131,7 @@ jobs:
     # Claude GitHub App manages its own token, so only minimal permissions are needed.
     permissions:
       contents: read # Read repository contents for checkout
-      id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
+      id-token: write # GitHub App token exchange via OIDC (needed regardless of auth method)
     uses: ncaq/kyosei-action/.github/workflows/review.yml@v2.1.3
     secrets:
       claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -182,7 +193,7 @@ jobs:
     # Claude GitHub App manages its own token, so only minimal permissions are needed.
     permissions:
       contents: read # Read repository contents for checkout
-      id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
+      id-token: write # GitHub App token exchange via OIDC (needed regardless of auth method)
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -340,7 +351,8 @@ Additional allowed tools to append to allowed_tools (newline-separated).
 
 Default: `""`
 
-Additional arguments to pass to Claude CLI (appended after --model and --allowed-tools).
+Additional arguments to pass to Claude CLI
+(appended after --model and --allowed-tools).
 
 #### UI control
 
@@ -400,14 +412,17 @@ self_hosted_packages: |
 ```
 
 Newline-separated list of packages to install via `apt-get` on self-hosted runners.
-When the runner is self-hosted and `apt-get` is available, the listed packages are installed automatically.
-On runners without `apt-get` (e.g. Fedora, NixOS), installation is skipped
-and required commands must be pre-installed.
+When the runner is self-hosted and `apt-get` is available,
+the listed packages are installed automatically.
+On runners without `apt-get` (e.g. Fedora, NixOS),
+installation is skipped and required commands must be pre-installed.
 
-After installation (or skip), the action verifies that `curl`, `gh`, `git`, and `node` are available,
+After installation (or skip),
+the action verifies that `curl`, `gh`, `git`, and `node` are available,
 and fails with an error if any are missing.
 
-Node.js is set up separately via `actions/setup-node` and does not need to be included in this list.
+Node.js is set up separately via `actions/setup-node` and
+does not need to be included in this list.
 
 To skip automatic installation entirely, pass an empty string:
 
@@ -521,7 +536,7 @@ so each job only needs minimal permissions:
 ```yaml
 permissions:
   contents: read # Read repository contents for checkout
-  id-token: write # GitHub App token exchange via OIDC (needed regardless of Claude API auth method)
+  id-token: write # GitHub App token exchange via OIDC (needed regardless of auth method)
 ```
 
 `id-token: write` is required even when using `claude_code_oauth_token` or `anthropic_api_key`.
