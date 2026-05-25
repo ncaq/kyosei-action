@@ -333,6 +333,8 @@ Restricted to read-only commands and non-destructive tools.
 Mutations such as posting reviews are performed by the kyosei skill
 via its Node.js implementation rather than by Claude directly.
 
+###### GitHub MCP
+
 GitHub MCP tools must be listed individually
 with the full `mcp__github__<tool_name>` form
 (note the trailing `__` separator after "github").
@@ -340,6 +342,8 @@ with the full `mcp__github__<tool_name>` form
 The bare `mcp__github` prefix does NOT match
 claude-code-action's `startsWith("mcp__github__")`
 check that activates the Docker-based GitHub MCP server.
+
+###### Kyosei skill MCP
 
 The default also allows the tools that the bundled plugins
 (kyosei and its transitive research dependency) rely on,
