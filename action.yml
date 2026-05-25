@@ -98,18 +98,22 @@ inputs:
     default: "medium"
   allowed_tools:
     description: >-
-      Allowed tools for Claude Code (newline-separated, replaces default set).
-      Restricted to read-only commands and non-destructive tools.
-      Mutations such as posting reviews are performed by the kyosei skill
-      via its Node.js implementation rather than by Claude directly.
-      GitHub MCP tools must be listed individually
-      with the full `mcp__github__<tool_name>` form
-      (note the trailing `__` separator after "github").
-      The bare `mcp__github` prefix does NOT match
-      claude-code-action's `startsWith("mcp__github__")`
-      check that activates the Docker-based GitHub MCP server.
+      Allowed tools for Claude Code (newline-separated, replaces the default set below).
+      The default is limited to read-only, non-destructive tools;
+      posting reviews is handled by the kyosei skill itself, not directly by Claude.
+      List each GitHub MCP tool individually as `mcp__github__<tool_name>`,
+      because claude-code-action only starts the GitHub MCP server
+      when a tool name begins with `mcp__github__`
+      (the bare `mcp__github` prefix does not work).
+      The default also allows what the bundled plugins need:
+      the `Agent` tool and the MCP servers used by the research survey agent
+      (`mcp__backlog__*`, `mcp__plugin_nix-tasuke_nixos`, `mcp__plugin_research_*`).
+      The `mcp__plugin_*` servers ship with the bundled plugins and work out of the box.
+      Backlog (`mcp__backlog__*`) is not bundled, so it only works
+      if you configure the Backlog MCP server yourself (for example via `.mcp.json`).
     required: false
     default: |
+      Agent
       Bash(awk:*)
       Bash(gh issue list:*)
       Bash(gh issue status:*)
@@ -144,8 +148,8 @@ inputs:
       Bash(git rev-list:*)
       Bash(git rev-parse:*)
       Bash(git shortlog:*)
-      Bash(git show:*)
       Bash(git show-branch:*)
+      Bash(git show:*)
       Bash(git status:*)
       Bash(jq:*)
       Bash(node:*)
@@ -157,6 +161,17 @@ inputs:
       TodoWrite
       WebFetch
       WebSearch
+      mcp__backlog__get_issue
+      mcp__backlog__get_issue_comments
+      mcp__backlog__get_issues
+      mcp__backlog__get_myself
+      mcp__backlog__get_notifications
+      mcp__backlog__get_project
+      mcp__backlog__get_project_list
+      mcp__backlog__get_pull_request
+      mcp__backlog__get_pull_requests
+      mcp__backlog__get_wiki
+      mcp__backlog__get_wiki_pages
       mcp__github__get_code_scanning_alert
       mcp__github__get_commit
       mcp__github__get_dependabot_alert
@@ -181,6 +196,7 @@ inputs:
       mcp__github__get_team_members
       mcp__github__get_teams
       mcp__github__get_workflow_run
+      mcp__github__issue_read
       mcp__github__list_branches
       mcp__github__list_code_scanning_alerts
       mcp__github__list_commits
@@ -197,11 +213,18 @@ inputs:
       mcp__github__list_workflow_jobs
       mcp__github__list_workflow_runs
       mcp__github__list_workflows
+      mcp__github__pull_request_read
       mcp__github__search_code
       mcp__github__search_issues
       mcp__github__search_pull_requests
       mcp__github__search_repositories
       mcp__github__search_users
+      mcp__plugin_nix-tasuke_nixos
+      mcp__plugin_research_cloudflare
+      mcp__plugin_research_context7
+      mcp__plugin_research_deepwiki
+      mcp__plugin_research_mdn
+      mcp__plugin_research_microsoft-learn
   additional_allowed_tools:
     description: Additional allowed tools to append to allowed_tools (newline-separated)
     required: false

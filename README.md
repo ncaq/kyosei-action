@@ -325,7 +325,7 @@ Set to an empty string to omit the flag and use the model default.
 
 ##### `allowed_tools`
 
-Default: see below.
+Default: see the `allowed_tools` default in [action.yml](./action.yml).
 
 Allowed tools for Claude Code (newline-separated, replaces default set).
 Restricted to read-only commands and non-destructive tools.
@@ -333,13 +333,31 @@ Restricted to read-only commands and non-destructive tools.
 Mutations such as posting reviews are performed by the kyosei skill
 via its Node.js implementation rather than by Claude directly.
 
-GitHub MCP tools must be listed individually
-with the full `mcp__github__<tool_name>` form
-(note the trailing `__` separator after "github").
+###### GitHub MCP
 
-The bare `mcp__github` prefix does NOT match
-claude-code-action's `startsWith("mcp__github__")`
-check that activates the Docker-based GitHub MCP server.
+List each GitHub MCP tool individually as `mcp__github__<tool_name>`,
+because claude-code-action only starts the GitHub MCP server
+when a tool name begins with `mcp__github__`
+(the bare `mcp__github` prefix does not work).
+
+###### Kyosei skill MCP
+
+The default also allows what the bundled plugins need:
+the `Agent` tool and the MCP servers used by the research survey agent.
+
+- `mcp__backlog__*` (only the read-only tools the survey agent uses)
+- `mcp__plugin_nix-tasuke_nixos`
+- `mcp__plugin_research_*`
+
+The `*` here is conceptual shorthand for explanation, not a literal value.
+claude-code-action does not necessarily honor wildcards in `allowed_tools`,
+so the actual default enumerates each tool or server individually
+(for example `mcp__backlog__get_issue` and `mcp__plugin_research_cloudflare`).
+
+The `mcp__plugin_*` servers ship with the bundled plugins and work out of the box.
+Backlog (`mcp__backlog__*`) is not bundled,
+so it only works if you configure the Backlog MCP server yourself
+(for example via `.mcp.json`).
 
 ##### `additional_allowed_tools`
 
@@ -436,63 +454,7 @@ because `runner.environment` is not `self-hosted`.
 
 #### Default allowed tools
 
-```yaml
-allowed_tools: |
-  Bash(awk:*)
-  Bash(gh issue list:*)
-  Bash(gh issue status:*)
-  Bash(gh issue view:*)
-  Bash(gh label list:*)
-  Bash(gh label view:*)
-  Bash(gh pr checks:*)
-  Bash(gh pr diff:*)
-  Bash(gh pr list:*)
-  Bash(gh pr status:*)
-  Bash(gh pr view:*)
-  Bash(gh release list:*)
-  Bash(gh release view:*)
-  Bash(gh repo view:*)
-  Bash(gh ruleset list:*)
-  Bash(gh ruleset view:*)
-  Bash(gh run list:*)
-  Bash(gh run view:*)
-  Bash(gh search:*)
-  Bash(gh status:*)
-  Bash(gh workflow list:*)
-  Bash(gh workflow view:*)
-  Bash(git blame:*)
-  Bash(git cat-file:*)
-  Bash(git describe:*)
-  Bash(git diff:*)
-  Bash(git for-each-ref:*)
-  Bash(git log:*)
-  Bash(git ls-files:*)
-  Bash(git ls-remote:*)
-  Bash(git ls-tree:*)
-  Bash(git rev-list:*)
-  Bash(git rev-parse:*)
-  Bash(git shortlog:*)
-  Bash(git show:*)
-  Bash(git show-branch:*)
-  Bash(git status:*)
-  Bash(jq:*)
-  Bash(node:*)
-  Glob
-  Grep
-  Read
-  Skill
-  Task
-  TodoWrite
-  WebFetch
-  WebSearch
-  mcp__github__get_commit
-  mcp__github__get_file_contents
-  mcp__github__get_issue
-  mcp__github__get_me
-  mcp__github__get_pull_request
-  # ... (all read-only GitHub MCP tools)
-  mcp__github__search_users
-```
+Please see the `allowed_tools` section of [action.yml](./action.yml).
 
 The full list of GitHub MCP tools includes all read-only tools from
 [github-mcp-server](https://github.com/github/github-mcp-server) v0.17.1:
@@ -507,8 +469,6 @@ The full list of GitHub MCP tools includes all read-only tools from
 - Repos
 - Secret
 - Users
-
-See [`action.yml`](action.yml) for the complete list.
 
 To add tools without replacing the defaults, use `additional_allowed_tools`:
 
