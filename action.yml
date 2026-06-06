@@ -415,6 +415,7 @@ runs:
       env:
         DISPLAY_REPORT: ${{ inputs.display_report }}
         IS_PRIVATE: ${{ github.event.repository.private }}
+        RUNNER_DEBUG: ${{ runner.debug }}
       run: |
         # Normalize legacy values.
         case "$DISPLAY_REPORT" in
@@ -428,6 +429,14 @@ runs:
           auto)   enabled="$IS_PRIVATE" ;;
           *)      echo "::error::Unknown display_report value: $DISPLAY_REPORT"; exit 1 ;;
         esac
+        # When GitHub Actions debug logging is enabled
+        # (ACTIONS_STEP_DEBUG=true, surfaced as runner.debug == "1"),
+        # force the report on regardless of repository visibility.
+        # The report only summarizes what Claude did,
+        # so showing it on public repositories is acceptable for debugging.
+        if [[ "$RUNNER_DEBUG" == "1" ]]; then
+          enabled="true"
+        fi
         echo "enabled=$enabled" >> "$GITHUB_OUTPUT"
 
     # Export `$KYOSEI_ACTION_VERSION` via `$GITHUB_ENV`
@@ -490,7 +499,11 @@ runs:
         settings: ${{ inputs.settings }}
         include_fix_links: ${{ inputs.include_fix_links == 'true' && 'true' || 'false' }}
         display_report: ${{ steps.resolve-display-report.outputs.enabled }}
-        show_full_output: ${{ (inputs.show_full_output == 'true' && github.event.repository.private) && 'true' || 'false' }}
+        # Enable full output when explicitly requested,
+        # or when GitHub Actions debug logging is on (runner.debug == "1").
+        # The full trace may contain secrets,
+        # so it stays restricted to private repositories either way.
+        show_full_output: ${{ ((inputs.show_full_output == 'true' || runner.debug == '1') && github.event.repository.private) && 'true' || 'false' }}
         claude_args: >-
           --model "${{ inputs.model }}"
           ${{ inputs.effort != '' && format('--effort "{0}"', inputs.effort) || '' }}

@@ -390,6 +390,9 @@ Useful for understanding what Claude did during the review.
 `always` enables it regardless of repository visibility.
 `never` disables it entirely.
 `true`/`false` are accepted as aliases for backward compatibility.
+When [GitHub Actions debug logging](https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/troubleshooting-workflows/enabling-debug-logging) is enabled (`ACTIONS_STEP_DEBUG`),
+the report is forced on regardless of this value,
+since it only summarizes what Claude did.
 
 ##### `show_full_output`
 
@@ -398,6 +401,9 @@ Default: `false`
 Show full Claude Code JSON output in Actions logs.
 May contain secrets in tool results; use only for debugging.
 Ignored on public repositories to prevent secret leakage.
+When [GitHub Actions debug logging](https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows/troubleshooting-workflows/enabling-debug-logging) is enabled (`ACTIONS_STEP_DEBUG`),
+the full output is shown automatically,
+but it remains restricted to private repositories.
 
 #### Marketplace and plugin
 
