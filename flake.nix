@@ -39,13 +39,9 @@
               prettier.enable = true;
               shellcheck.enable = true;
               shfmt.enable = true;
+              statix.enable = true;
               typos.enable = true;
               zizmor.enable = true;
-
-              statix = {
-                enable = true;
-                disabled-lints = [ "eta_reduction" ];
-              };
             };
             settings.formatter = {
               action-validator = {
