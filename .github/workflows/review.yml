@@ -89,7 +89,7 @@ on:
         description: Claude model to use
         type: string
         required: false
-        default: "opus[1m]"
+        default: "opus"
       effort:
         description: >-
           Reasoning effort level for the top-level orchestrator session

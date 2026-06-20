@@ -301,7 +301,7 @@ Can configure hooks, env, MCP settings, etc.
 
 ##### `model`
 
-Default: `opus[1m]`
+Default: `opus`
 
 Claude model to use.
 
