@@ -84,7 +84,7 @@ inputs:
   model:
     description: Claude model to use
     required: false
-    default: "opus[1m]"
+    default: "opus"
   effort:
     description: >-
       Reasoning effort level for the top-level orchestrator session
