@@ -483,7 +483,15 @@ runs:
     - name: Run Kyosei
       id: claude-review
       continue-on-error: true
-      uses: anthropics/claude-code-action@2fee15510437d71399d9139ed60433470484a8fb # v1.0.153
+      # claude-code-action`v1.0.146`でagent modeの起動時に
+      # `${RUNNER_TEMP}/claude-prompts`を`rm -rf`するようになった。
+      # <https://github.com/anthropics/claude-code-action/pull/1288>
+      # この変更により後続のWrite user requestステップが書く`claude-user-request.txt`が、
+      # claude-code-action起動時に消去され、
+      # SDK側でスラッシュコマンドを含むマルチブロックメッセージが生成されず、
+      # `/kyosei`が展開されないままClaudeに渡るようになりレビューが動かなくなった。
+      # 暫定対応として直前の`v1.0.145`に固定する。
+      uses: anthropics/claude-code-action@ebcdfe6dc6bb7511eb63e59e07df256dbcf59a2e # v1.0.145
       with:
         claude_code_oauth_token: ${{ inputs.claude_code_oauth_token }}
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
