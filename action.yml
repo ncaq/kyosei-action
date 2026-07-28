@@ -480,6 +480,117 @@ runs:
         mkdir -p "${RUNNER_TEMP}/claude-prompts"
         echo "/kyosei ${PR_URL}" > "${RUNNER_TEMP}/claude-prompts/claude-user-request.txt"
 
+    # claude-code-actionは自前でClaude Code CLIをインストールするが、
+    # そのバージョンはaction側にハードコードされているため、
+    # `v1.0.145`固定だとClaude Codeも`2.1.174`から上がらない。
+    # Opus 5はClaude Code`2.1.219`で追加されて`opus`エイリアスの解決先になったので、
+    # `2.1.174`のままでは`model: opus`がOpus 4系のままになる。
+    # `path_to_claude_code_executable`を渡すとclaude-code-action側のインストールは、
+    # 丸ごとスキップされてここでインストールしたバイナリが使われるため、
+    # actionのバージョンを固定したままClaude Codeだけ新しく出来る。
+    #
+    # `curl https://claude.ai/install.sh | bash`は検証点を持てないので使わない。
+    # 代わりに配布元から直接バイナリを取得して、
+    # バージョンごとに不変な`manifest.json`のSHA-256を固定値として持ち、
+    # そこに書かれているプラットフォーム別のチェックサムで、
+    # 実際に実行するバイナリを検証する。
+    # バージョンとプラットフォームはキャッシュキーとインストールの両方から参照するので、
+    # ここで一度だけ決めてstepのoutputとして渡す。
+    - name: Resolve Claude Code target
+      id: claude-code
+      shell: bash
+      env:
+        # Opus 5を使うには`2.1.219`以上が必要。
+        # <https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md>
+        CLAUDE_CODE_VERSION: "2.1.220"
+        # バージョンを上げる時は以下のコマンドで取り直す。
+        # curl -fsSL https://downloads.claude.ai/claude-code-releases/<version>/manifest.json | sha256sum
+        CLAUDE_CODE_MANIFEST_SHA256: "40f281ff188f1cd4f39309da41a219014dad2555d96e9780c67a2138720d12ed"
+      run: |
+        case "$(uname -s)" in
+          Darwin) os=darwin ;;
+          Linux) os=linux ;;
+          *) echo "::error::Unsupported operating system: $(uname -s)"; exit 1 ;;
+        esac
+        case "$(uname -m)" in
+          x86_64 | amd64) arch=x64 ;;
+          arm64 | aarch64) arch=arm64 ;;
+          *) echo "::error::Unsupported architecture: $(uname -m)"; exit 1 ;;
+        esac
+        platform="$os-$arch"
+        # musl libc based Linux distributions have their own build.
+        if [[ "$os" == "linux" ]] && ldd /bin/ls 2>&1 | grep -q musl; then
+          platform="$platform-musl"
+        fi
+
+        install_dir="${RUNNER_TEMP}/claude-code"
+        {
+          echo "version=$CLAUDE_CODE_VERSION"
+          echo "manifest-sha256=$CLAUDE_CODE_MANIFEST_SHA256"
+          echo "platform=$platform"
+          echo "dir=$install_dir"
+          echo "path=$install_dir/claude"
+        } >> "$GITHUB_OUTPUT"
+
+    # バイナリは250MB以上あるので、
+    # バージョンとプラットフォームが同じなら再ダウンロードは避ける。
+    - name: Restore cached Claude Code
+      id: cache-claude-code
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ steps.claude-code.outputs.dir }}
+        key: claude-code-${{ steps.claude-code.outputs.platform }}-${{ steps.claude-code.outputs.version }}
+
+    - name: Install Claude Code
+      if: steps.cache-claude-code.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        BASE_URL: https://downloads.claude.ai/claude-code-releases
+        VERSION: ${{ steps.claude-code.outputs.version }}
+        MANIFEST_SHA256: ${{ steps.claude-code.outputs.manifest-sha256 }}
+        PLATFORM: ${{ steps.claude-code.outputs.platform }}
+        INSTALL_DIR: ${{ steps.claude-code.outputs.dir }}
+      run: |
+        echo "::group::Install Claude Code v$VERSION"
+        mkdir -p "$INSTALL_DIR"
+
+        # `--proto '=https'` also rejects a redirect to plain HTTP.
+        download() {
+          curl --proto "=https" --tlsv1.2 --fail --silent --show-error --location \
+            --retry 3 --retry-delay 5 --output "$1" "$2"
+        }
+
+        # macOS has no `sha256sum`.
+        sha256() {
+          if command -v sha256sum > /dev/null; then
+            sha256sum "$1" | cut -d ' ' -f 1
+          else
+            shasum -a 256 "$1" | cut -d ' ' -f 1
+          fi
+        }
+
+        verify() {
+          local actual
+          actual=$(sha256 "$1")
+          if [[ "$actual" != "$2" ]]; then
+            echo "::error::Checksum mismatch for $1: expected $2, got $actual"
+            exit 1
+          fi
+        }
+
+        download "$INSTALL_DIR/manifest.json" "$BASE_URL/$VERSION/manifest.json"
+        verify "$INSTALL_DIR/manifest.json" "$MANIFEST_SHA256"
+
+        # Fails when the platform is missing from the manifest, thanks to `--exit-status`.
+        checksum=$(jq --raw-output --exit-status --arg platform "$PLATFORM" \
+          '.platforms[$platform].checksum' "$INSTALL_DIR/manifest.json")
+        download "$INSTALL_DIR/claude" "$BASE_URL/$VERSION/$PLATFORM/claude"
+        verify "$INSTALL_DIR/claude" "$checksum"
+        chmod +x "$INSTALL_DIR/claude"
+
+        echo "Installed $("$INSTALL_DIR/claude" --version) for $PLATFORM"
+        echo "::endgroup::"
+
     - name: Run Kyosei
       id: claude-review
       continue-on-error: true
@@ -491,8 +602,11 @@ runs:
       # SDK側でスラッシュコマンドを含むマルチブロックメッセージが生成されず、
       # `/kyosei`が展開されないままClaudeに渡るようになりレビューが動かなくなった。
       # 暫定対応として直前の`v1.0.145`に固定する。
+      # ただしそれに引きずられてClaude Code CLIまで古くなるのを避けるため、
+      # CLIだけは直前のInstall Claude Codeステップで入れた新しいものを使う。
       uses: anthropics/claude-code-action@ebcdfe6dc6bb7511eb63e59e07df256dbcf59a2e # v1.0.145
       with:
+        path_to_claude_code_executable: ${{ steps.claude-code.outputs.path }}
         claude_code_oauth_token: ${{ inputs.claude_code_oauth_token }}
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
         use_bedrock: ${{ inputs.use_bedrock }}
