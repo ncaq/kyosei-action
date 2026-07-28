@@ -488,6 +488,12 @@ runs:
     # `path_to_claude_code_executable`を渡すとclaude-code-action側のインストールは、
     # 丸ごとスキップされてここでインストールしたバイナリが使われるため、
     # actionのバージョンを固定したままClaude Codeだけ新しく出来る。
+    #
+    # `curl https://claude.ai/install.sh | bash`は検証点を持てないので使わない。
+    # 代わりに配布元から直接バイナリを取得して、
+    # バージョンごとに不変な`manifest.json`のSHA-256を固定値として持ち、
+    # そこに書かれているプラットフォーム別のチェックサムで、
+    # 実際に実行するバイナリを検証する。
     - name: Install Claude Code
       id: install-claude-code
       shell: bash
@@ -495,22 +501,67 @@ runs:
         # Opus 5を使うには`2.1.219`以上が必要。
         # <https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md>
         CLAUDE_CODE_VERSION: "2.1.220"
+        # バージョンを上げる時は以下のコマンドで取り直す。
+        # curl -fsSL https://downloads.claude.ai/claude-code-releases/<version>/manifest.json | sha256sum
+        CLAUDE_CODE_MANIFEST_SHA256: "40f281ff188f1cd4f39309da41a219014dad2555d96e9780c67a2138720d12ed"
       run: |
         echo "::group::Install Claude Code v$CLAUDE_CODE_VERSION"
-        # Retry because the installer downloads over the network.
-        for attempt in 1 2 3; do
-          if curl -fsSL https://claude.ai/install.sh | bash -s -- "$CLAUDE_CODE_VERSION"; then
-            break
+        base_url=https://downloads.claude.ai/claude-code-releases
+        install_dir="${RUNNER_TEMP}/claude-code"
+        mkdir -p "$install_dir"
+
+        case "$(uname -s)" in
+          Darwin) os=darwin ;;
+          Linux) os=linux ;;
+          *) echo "::error::Unsupported operating system: $(uname -s)"; exit 1 ;;
+        esac
+        case "$(uname -m)" in
+          x86_64 | amd64) arch=x64 ;;
+          arm64 | aarch64) arch=arm64 ;;
+          *) echo "::error::Unsupported architecture: $(uname -m)"; exit 1 ;;
+        esac
+        platform="$os-$arch"
+        # musl libc based Linux distributions have their own build.
+        if [[ "$os" == "linux" ]] && ldd /bin/ls 2>&1 | grep -q musl; then
+          platform="$platform-musl"
+        fi
+
+        # `--proto '=https'` also rejects a redirect to plain HTTP.
+        download() {
+          curl --proto "=https" --tlsv1.2 --fail --silent --show-error --location \
+            --retry 3 --retry-delay 5 --output "$1" "$2"
+        }
+
+        # macOS has no `sha256sum`.
+        sha256() {
+          if command -v sha256sum > /dev/null; then
+            sha256sum "$1" | cut -d ' ' -f 1
+          else
+            shasum -a 256 "$1" | cut -d ' ' -f 1
           fi
-          if [[ "$attempt" == 3 ]]; then
-            echo "::error::Failed to install Claude Code v$CLAUDE_CODE_VERSION after 3 attempts."
+        }
+
+        verify() {
+          local actual
+          actual=$(sha256 "$1")
+          if [[ "$actual" != "$2" ]]; then
+            echo "::error::Checksum mismatch for $1: expected $2, got $actual"
             exit 1
           fi
-          echo "Installation attempt $attempt failed, retrying..."
-          sleep 5
-        done
-        # install.sh sets up the launcher at `~/.local/bin/claude`.
-        echo "path=$HOME/.local/bin/claude" >> "$GITHUB_OUTPUT"
+        }
+
+        download "$install_dir/manifest.json" "$base_url/$CLAUDE_CODE_VERSION/manifest.json"
+        verify "$install_dir/manifest.json" "$CLAUDE_CODE_MANIFEST_SHA256"
+
+        # Fails when the platform is missing from the manifest, thanks to `--exit-status`.
+        checksum=$(jq --raw-output --exit-status --arg platform "$platform" \
+          '.platforms[$platform].checksum' "$install_dir/manifest.json")
+        download "$install_dir/claude" "$base_url/$CLAUDE_CODE_VERSION/$platform/claude"
+        verify "$install_dir/claude" "$checksum"
+        chmod +x "$install_dir/claude"
+
+        echo "Installed $("$install_dir/claude" --version) for $platform"
+        echo "path=$install_dir/claude" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
 
     - name: Run Kyosei
