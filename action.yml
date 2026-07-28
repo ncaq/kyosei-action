@@ -480,6 +480,39 @@ runs:
         mkdir -p "${RUNNER_TEMP}/claude-prompts"
         echo "/kyosei ${PR_URL}" > "${RUNNER_TEMP}/claude-prompts/claude-user-request.txt"
 
+    # claude-code-actionは自前でClaude Code CLIをインストールするが、
+    # そのバージョンはaction側にハードコードされているため、
+    # `v1.0.145`固定だとClaude Codeも`2.1.174`から上がらない。
+    # Opus 5はClaude Code`2.1.219`で追加されて`opus`エイリアスの解決先になったので、
+    # `2.1.174`のままでは`model: opus`がOpus 4系のままになる。
+    # `path_to_claude_code_executable`を渡すとclaude-code-action側のインストールは、
+    # 丸ごとスキップされてここでインストールしたバイナリが使われるため、
+    # actionのバージョンを固定したままClaude Codeだけ新しく出来る。
+    - name: Install Claude Code
+      id: install-claude-code
+      shell: bash
+      env:
+        # Opus 5を使うには`2.1.219`以上が必要。
+        # <https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md>
+        CLAUDE_CODE_VERSION: "2.1.220"
+      run: |
+        echo "::group::Install Claude Code v$CLAUDE_CODE_VERSION"
+        # Retry because the installer downloads over the network.
+        for attempt in 1 2 3; do
+          if curl -fsSL https://claude.ai/install.sh | bash -s -- "$CLAUDE_CODE_VERSION"; then
+            break
+          fi
+          if [[ "$attempt" == 3 ]]; then
+            echo "::error::Failed to install Claude Code v$CLAUDE_CODE_VERSION after 3 attempts."
+            exit 1
+          fi
+          echo "Installation attempt $attempt failed, retrying..."
+          sleep 5
+        done
+        # install.sh sets up the launcher at `~/.local/bin/claude`.
+        echo "path=$HOME/.local/bin/claude" >> "$GITHUB_OUTPUT"
+        echo "::endgroup::"
+
     - name: Run Kyosei
       id: claude-review
       continue-on-error: true
@@ -491,8 +524,11 @@ runs:
       # SDK側でスラッシュコマンドを含むマルチブロックメッセージが生成されず、
       # `/kyosei`が展開されないままClaudeに渡るようになりレビューが動かなくなった。
       # 暫定対応として直前の`v1.0.145`に固定する。
+      # ただしそれに引きずられてClaude Code CLIまで古くなるのを避けるため、
+      # CLIだけは直前のInstall Claude Codeステップで入れた新しいものを使う。
       uses: anthropics/claude-code-action@ebcdfe6dc6bb7511eb63e59e07df256dbcf59a2e # v1.0.145
       with:
+        path_to_claude_code_executable: ${{ steps.install-claude-code.outputs.path }}
         claude_code_oauth_token: ${{ inputs.claude_code_oauth_token }}
         anthropic_api_key: ${{ inputs.anthropic_api_key }}
         use_bedrock: ${{ inputs.use_bedrock }}

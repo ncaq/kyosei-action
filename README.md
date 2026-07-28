@@ -305,6 +305,11 @@ Default: `opus`
 
 Claude model to use.
 
+The Claude Code CLI is installed by this action itself
+instead of the one claude-code-action would install,
+so aliases such as `opus` resolve to the model of the version pinned
+in the `Install Claude Code` step of [action.yml](./action.yml).
+
 ##### `effort`
 
 Default: `medium`
