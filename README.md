@@ -312,7 +312,7 @@ in the `Install Claude Code` step of [action.yml](./action.yml).
 
 ##### `effort`
 
-Default: `medium`
+Default: `low`
 
 Reasoning effort level for the top-level orchestrator session.
 Valid values: `low`, `medium`, `high`, `xhigh`, `max`.

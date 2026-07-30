@@ -95,7 +95,7 @@ inputs:
       which overrides this session-level value per Claude Code's agent fields spec.
       Set to an empty string to omit the flag and use the model default.
     required: false
-    default: "medium"
+    default: "low"
   allowed_tools:
     description: >-
       Allowed tools for Claude Code (newline-separated, replaces the default set below).
