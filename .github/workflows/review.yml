@@ -101,7 +101,7 @@ on:
           Set to an empty string to omit the flag and use the model default.
         type: string
         required: false
-        default: "medium"
+        default: "low"
       allowed_tools:
         description: >-
           Allowed tools for Claude Code (newline-separated, replaces default set).
@@ -299,7 +299,7 @@ on:
         description: Job timeout in minutes. Set as a safeguard against hangs.
         type: number
         required: false
-        default: 30
+        default: 60
       fetch-depth:
         description: >-
           Number of commits to fetch.

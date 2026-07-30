@@ -143,7 +143,7 @@ The Reusable Workflow additionally accepts the following inputs:
 | Name              | Description                                              | Default        |
 | ----------------- | -------------------------------------------------------- | -------------- |
 | `runs-on`         | Runner label(s) (plain string, JSON string/array/object) | `ubuntu-24.04` |
-| `timeout-minutes` | Job timeout in minutes                                   | `30`           |
+| `timeout-minutes` | Job timeout in minutes                                   | `60`           |
 | `fetch-depth`     | Number of commits to fetch                               | `50`           |
 
 ### `runs-on` format
@@ -194,7 +194,7 @@ jobs:
     permissions:
       contents: read # Read repository contents for checkout
       id-token: write # GitHub App token exchange via OIDC (needed regardless of auth method)
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
