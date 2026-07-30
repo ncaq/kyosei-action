@@ -321,7 +321,8 @@ The kyosei skill itself only dispatches reviewer subagents and posts JSON,
 so it does not need deep reasoning.
 Lowering this level reduces cost and latency without affecting review quality.
 
-Reviewer subagents have their own other effort in agent frontmatter,
+Reviewer subagents declare their own effort in agent frontmatter,
+so the actual reviews are unaffected by this setting.
 which [overrides the session-level value](https://code.claude.com/docs/en/agents).
 
 Set to an empty string to omit the flag and use the model default.
