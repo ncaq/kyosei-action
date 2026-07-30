@@ -96,7 +96,7 @@ on:
           (low, medium, high, xhigh, max).
           The kyosei skill itself only dispatches reviewer subagents and posts JSON,
           so a lower level reduces cost and latency without affecting review quality.
-          Reviewer subagents have their own other effort in agent frontmatter,
+          Reviewer subagents declare their own effort in agent frontmatter,
           which overrides this session-level value per Claude Code's agent fields spec.
           Set to an empty string to omit the flag and use the model default.
         type: string
