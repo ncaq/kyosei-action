@@ -143,7 +143,7 @@ The Reusable Workflow additionally accepts the following inputs:
 | Name              | Description                                              | Default        |
 | ----------------- | -------------------------------------------------------- | -------------- |
 | `runs-on`         | Runner label(s) (plain string, JSON string/array/object) | `ubuntu-24.04` |
-| `timeout-minutes` | Job timeout in minutes                                   | `30`           |
+| `timeout-minutes` | Job timeout in minutes                                   | `60`           |
 | `fetch-depth`     | Number of commits to fetch                               | `50`           |
 
 ### `runs-on` format
@@ -194,7 +194,7 @@ jobs:
     permissions:
       contents: read # Read repository contents for checkout
       id-token: write # GitHub App token exchange via OIDC (needed regardless of auth method)
-    timeout-minutes: 30
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -312,7 +312,7 @@ in the `Install Claude Code` step of [action.yml](./action.yml).
 
 ##### `effort`
 
-Default: `medium`
+Default: `low`
 
 Reasoning effort level for the top-level orchestrator session.
 Valid values: `low`, `medium`, `high`, `xhigh`, `max`.
@@ -321,10 +321,9 @@ The kyosei skill itself only dispatches reviewer subagents and posts JSON,
 so it does not need deep reasoning.
 Lowering this level reduces cost and latency without affecting review quality.
 
-Reviewer subagents (code-quality-reviewer, security-reviewer, etc.)
-have their own `effort: high` in agent frontmatter,
-which [overrides the session-level value](https://code.claude.com/docs/en/agents).
-The actual reviews still run at `high` regardless of this setting.
+Reviewer subagents declare their own effort in agent frontmatter,
+which [overrides the session-level value](https://code.claude.com/docs/en/agents),
+so the actual reviews are unaffected by this setting.
 
 Set to an empty string to omit the flag and use the model default.
 
