@@ -66,6 +66,32 @@ describe("buildSettings", () => {
     );
   });
 
+  it("読めないsettingsのメッセージに渡された値を含めません", async (t) => {
+    const temporary = await makeDirectory(t);
+    // JSONとして読めない値はファイルのパスとして扱われるので、
+    // 失敗した時のエラーには渡された値がそのまま入り得ます。
+    await assert.rejects(
+      buildSettings({ TMPDIR: temporary, SETTINGS: "{not json: s3cret}" }),
+      (error: Error) => {
+        assert.doesNotMatch(error.message, /s3cret/);
+        return true;
+      },
+    );
+  });
+
+  it("中身が壊れているsettingsのファイルを拒否します", async (t) => {
+    const temporary = await makeDirectory(t);
+    const path = join(temporary, "settings.json");
+    // JSONではないファイルを指してしまう事故を想定します。
+    await writeFile(path, "SECRET=s3cret\n");
+    await assert.rejects(buildSettings({ TMPDIR: temporary, SETTINGS: path }), (error: Error) => {
+      assert.match(error.message, /settings file does not contain valid JSON/);
+      // `JSON.parse`のメッセージは入力の抜粋を含むので、そのまま出してはいけません。
+      assert.doesNotMatch(error.message, /s3cret/);
+      return true;
+    });
+  });
+
   it("オブジェクトではないsettingsを拒否します", async (t) => {
     const temporary = await makeDirectory(t);
     for (const settings of ["null", '"foo"', "[]", "42"]) {
