@@ -77,8 +77,11 @@ on:
         default: ""
       settings:
         description: >-
-          Claude Code settings as a JSON string or path to a JSON file.
-          Merged with existing settings (input takes precedence).
+          Claude Code settings as a JSON object, or a path to a file containing one.
+          The job fails when it is neither, because the value is parsed here
+          to merge it with the `permissions.additionalDirectories` built from
+          the `additional_directories` input.
+          Also merged with existing settings (input takes precedence).
           Can configure hooks, env, MCP settings, etc.
         type: string
         required: false
@@ -104,58 +107,37 @@ on:
         default: "low"
       allowed_tools:
         description: >-
-          Allowed tools for Claude Code (newline-separated, replaces default set).
-          Restricted to read-only commands and non-destructive tools.
-          Mutations such as posting reviews are performed by the kyosei skill
-          via its Node.js implementation rather than by Claude directly.
-          GitHub MCP tools must be listed individually
-          with the full `mcp__github__<tool_name>` form
-          (note the trailing `__` separator after "github").
-          The bare `mcp__github` prefix does NOT match
-          claude-code-action's `startsWith("mcp__github__")`
-          check that activates the Docker-based GitHub MCP server.
+          Allowed tools for Claude Code (newline-separated, replaces the default set below).
+          The default allows `Bash` without any command restriction and `Write`,
+          because the kyosei plugin runs its own bundled binaries
+          whose names and paths differ per release,
+          reviewers write intermediate results to scratch files,
+          and `node` alone already permits arbitrary code execution anyway.
+          Reviewer subagents restrict their own tools in agent frontmatter,
+          but that is not a boundary because general-purpose subagents
+          inherit the tools of the session that started them.
+          The disposable runner only protects the working tree:
+          the session can read the credentials in the process environment
+          and has ways to send them elsewhere.
+          Since the pull request text it reads is attacker controlled,
+          replace this default with a stricter policy
+          when you review untrusted input such as fork pull requests.
+          See the README for details.
+          List each GitHub MCP tool individually as `mcp__github__<tool_name>`,
+          because claude-code-action only starts the GitHub MCP server
+          when a tool name begins with `mcp__github__`
+          (the bare `mcp__github` prefix does not work).
+          The default also allows what the bundled plugins need:
+          the `Agent` tool and the MCP servers used by the research survey agent
+          (`mcp__backlog__*`, `mcp__plugin_nix-tasuke_nixos`, `mcp__plugin_research_*`).
+          The `mcp__plugin_*` servers ship with the bundled plugins and work out of the box.
+          Backlog (`mcp__backlog__*`) is not bundled, so it only works
+          if you configure the Backlog MCP server yourself (for example via `.mcp.json`).
         type: string
         required: false
         default: |
-          Bash(awk:*)
-          Bash(gh issue list:*)
-          Bash(gh issue status:*)
-          Bash(gh issue view:*)
-          Bash(gh label list:*)
-          Bash(gh label view:*)
-          Bash(gh pr checks:*)
-          Bash(gh pr diff:*)
-          Bash(gh pr list:*)
-          Bash(gh pr status:*)
-          Bash(gh pr view:*)
-          Bash(gh release list:*)
-          Bash(gh release view:*)
-          Bash(gh repo view:*)
-          Bash(gh ruleset list:*)
-          Bash(gh ruleset view:*)
-          Bash(gh run list:*)
-          Bash(gh run view:*)
-          Bash(gh search:*)
-          Bash(gh status:*)
-          Bash(gh workflow list:*)
-          Bash(gh workflow view:*)
-          Bash(git blame:*)
-          Bash(git cat-file:*)
-          Bash(git describe:*)
-          Bash(git diff:*)
-          Bash(git for-each-ref:*)
-          Bash(git log:*)
-          Bash(git ls-files:*)
-          Bash(git ls-remote:*)
-          Bash(git ls-tree:*)
-          Bash(git rev-list:*)
-          Bash(git rev-parse:*)
-          Bash(git shortlog:*)
-          Bash(git show:*)
-          Bash(git show-branch:*)
-          Bash(git status:*)
-          Bash(jq:*)
-          Bash(node:*)
+          Agent
+          Bash
           Glob
           Grep
           Read
@@ -164,6 +146,18 @@ on:
           TodoWrite
           WebFetch
           WebSearch
+          Write
+          mcp__backlog__get_issue
+          mcp__backlog__get_issue_comments
+          mcp__backlog__get_issues
+          mcp__backlog__get_myself
+          mcp__backlog__get_notifications
+          mcp__backlog__get_project
+          mcp__backlog__get_project_list
+          mcp__backlog__get_pull_request
+          mcp__backlog__get_pull_requests
+          mcp__backlog__get_wiki
+          mcp__backlog__get_wiki_pages
           mcp__github__get_code_scanning_alert
           mcp__github__get_commit
           mcp__github__get_dependabot_alert
@@ -188,6 +182,7 @@ on:
           mcp__github__get_team_members
           mcp__github__get_teams
           mcp__github__get_workflow_run
+          mcp__github__issue_read
           mcp__github__list_branches
           mcp__github__list_code_scanning_alerts
           mcp__github__list_commits
@@ -204,18 +199,41 @@ on:
           mcp__github__list_workflow_jobs
           mcp__github__list_workflow_runs
           mcp__github__list_workflows
+          mcp__github__pull_request_read
           mcp__github__search_code
           mcp__github__search_issues
           mcp__github__search_pull_requests
           mcp__github__search_repositories
           mcp__github__search_users
+          mcp__plugin_nix-tasuke_nixos
+          mcp__plugin_research_cloudflare
+          mcp__plugin_research_context7
+          mcp__plugin_research_deepwiki
+          mcp__plugin_research_mdn
+          mcp__plugin_research_microsoft-learn
       additional_allowed_tools:
         description: Additional allowed tools to append to allowed_tools (newline-separated)
         type: string
         required: false
         default: ""
+      additional_directories:
+        description: >-
+          Extra directories Claude may read and write outside the workspace
+          (newline-separated absolute paths).
+          These are appended to the built-in ones,
+          which are `$RUNNER_TEMP`, `$XDG_RUNTIME_DIR` and `$TMPDIR` (or `/tmp`)
+          when they exist and are writable.
+          The kyosei skill writes review information files under those directories,
+          and Claude Code puts its own scratch files there,
+          so tools would otherwise be denied for being outside the workspace.
+          The action merges this list into the settings it passes to claude-code-action
+          as `permissions.additionalDirectories`,
+          together with whatever the `settings` input already contains.
+        type: string
+        required: false
+        default: ""
       claude_args:
-        description: >
+        description: >-
           Additional arguments to pass to Claude CLI
           (appended after --model and --allowed-tools)
         type: string
@@ -260,13 +278,13 @@ on:
         required: false
         default: |-
           kyosei@konoka
+          nix-tasuke@konoka
           research@konoka
 
       # Self-hosted runner support
       self_hosted_packages:
         description: >-
           Newline-separated list of packages to install via apt-get on self-hosted runners.
-          Passed through to kyosei-action.
           Installation runs only when the runner is self-hosted and apt-get is available.
           Set to an empty string to skip installation entirely.
         type: string
@@ -365,6 +383,7 @@ jobs:
           effort: ${{ inputs.effort }}
           allowed_tools: ${{ inputs.allowed_tools }}
           additional_allowed_tools: ${{ inputs.additional_allowed_tools }}
+          additional_directories: ${{ inputs.additional_directories }}
           claude_args: ${{ inputs.claude_args }}
           include_fix_links: ${{ inputs.include_fix_links && 'true' || 'false' }}
           display_report: ${{ inputs.display_report }}

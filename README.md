@@ -293,9 +293,18 @@ Only effective with OIDC token exchange (ignored when `custom_github_token` is s
 
 Default: `""`
 
-Claude Code settings as a JSON string or path to a JSON file.
+Claude Code settings as a JSON object, or a path to a file containing one.
 Merged with existing settings (input takes precedence).
 Can configure hooks, env, MCP settings, etc.
+
+The `permissions.additionalDirectories` built from the `additional_directories` input
+is merged into this as well.
+Directory lists from both sides are concatenated rather than replaced,
+so allowing extra directories here does not drop the built-in ones.
+
+Because the action parses this input to perform that merge,
+the job fails when the value is neither a JSON object
+nor a path to a file containing one.
 
 #### Claude Code configuration
 
@@ -332,10 +341,43 @@ Set to an empty string to omit the flag and use the model default.
 Default: see the `allowed_tools` default in [action.yml](./action.yml).
 
 Allowed tools for Claude Code (newline-separated, replaces default set).
-Restricted to read-only commands and non-destructive tools.
 
 Mutations such as posting reviews are performed by the kyosei skill
 via its Node.js implementation rather than by Claude directly.
+
+###### Bash and Write
+
+The default allows `Bash` without any command restriction, and `Write`.
+
+The kyosei plugin runs its own bundled binaries whose names and paths differ per release,
+so an allowlist of individual commands cannot cover them.
+Reviewers also write intermediate results to scratch files.
+`node` alone already permits arbitrary code execution,
+so restricting the rest gains little.
+
+Reviewer subagents restrict their own tools in agent frontmatter.
+Note that this is not a boundary:
+the allowed `Agent` tool can also start general-purpose subagents,
+which inherit the same tools as the session that started them.
+
+The runner is disposable, but that protects only the working tree.
+The session can read the process environment,
+which holds `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`
+and the GitHub App token,
+and `WebFetch` and the MCP servers give it ways to send them elsewhere.
+
+The reach is not limited to the review either.
+`$RUNNER_TEMP` is allowed as a working directory,
+and on GitHub hosted runners it also holds `_runner_file_commands`,
+where the files behind `GITHUB_ENV`, `GITHUB_PATH` and `GITHUB_OUTPUT` live.
+Appending to those injects environment variables or PATH entries
+into the later steps of the same job.
+
+This action feeds Claude text that the author of a pull request controls,
+such as the diff, the title and the comments,
+so a successful prompt injection reaches all of the above.
+Replace this default with a stricter policy when you review untrusted input,
+fork pull requests in particular.
 
 ###### GitHub MCP
 
@@ -368,6 +410,28 @@ so it only works if you configure the Backlog MCP server yourself
 Default: `""`
 
 Additional allowed tools to append to allowed_tools (newline-separated).
+
+##### `additional_directories`
+
+Default: `""`
+
+Extra directories Claude may read and write outside the workspace
+(newline-separated absolute paths).
+
+Claude Code refuses file tools outside the working directory,
+but the kyosei skill writes review information files under a private work directory,
+and Claude Code puts its own scratch files under the temporary directory.
+The built-in list therefore covers `$RUNNER_TEMP`, `$XDG_RUNTIME_DIR`
+and `$TMPDIR` (or `/tmp`), whichever of them exist and are writable,
+matching the order the kyosei skill resolves its work directory in.
+
+This input is appended to that built-in list,
+so it only adds directories and never removes them.
+
+Unlike the built-in ones, the directories given here are not checked for existence,
+so you can allow a path before whatever creates it runs.
+They must be absolute, though:
+the job fails when a line is anything else, `/` included.
 
 ##### `claude_args`
 
@@ -419,9 +483,13 @@ Git URL of the plugin marketplace.
 
 ##### `plugin_name`
 
-Default: `kyosei@konoka` and `research@konoka` (newline-separated)
+Default: `kyosei@konoka`, `nix-tasuke@konoka` and `research@konoka` (newline-separated)
 
 Plugin identifier within the marketplace.
+
+nix-tasuke is bundled because the default `allowed_tools` allows
+its `mcp__plugin_nix-tasuke_nixos` server,
+which the reviewers use to look up nixpkgs packages and NixOS options.
 
 #### Self-hosted runner support
 
@@ -487,7 +555,6 @@ To add tools without replacing the defaults, use `additional_allowed_tools`:
   with:
     claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
     additional_allowed_tools: |
-      Bash(npm test)
       Edit
 ```
 

@@ -26,9 +26,58 @@
 
       perSystem =
         {
+          lib,
           pkgs,
           ...
         }:
+        let
+          inherit (pkgs) nodejs;
+
+          npmFileset = lib.fileset.unions [
+            ./package.json
+            ./package-lock.json
+          ];
+
+          npmRoot = lib.fileset.toSource {
+            root = ./.;
+            fileset = npmFileset;
+          };
+
+          nodeModules = pkgs.importNpmLock.buildNodeModules {
+            inherit
+              nodejs
+              npmRoot
+              ;
+          };
+
+          tsRoot = lib.fileset.toSource {
+            root = ./.;
+            fileset = lib.fileset.unions [
+              npmFileset
+
+              ./script
+              ./test
+
+              ./.editorconfig
+              ./.gitignore
+              ./tsconfig.json
+            ];
+          };
+
+          # npm run経由でスクリプト実行を簡単にするためのヘルパー。
+          mkNpmCheck =
+            name: script:
+            pkgs.runCommand name
+              {
+                nativeBuildInputs = [ nodejs ];
+              }
+              ''
+                cp -r ${tsRoot}/. .
+                ln -s ${nodeModules}/node_modules node_modules
+                npm run ${script}
+                touch $out
+              '';
+        in
         {
           treefmt.config = {
             projectRootFile = "flake.nix";
@@ -89,8 +138,81 @@
                   "VERSION" # 編集はしないけどトリガーのために含める。
                 ];
               };
+              # `review.yml`は`action.yml`の入力を再宣言してそのまま渡すため、
+              # 乖離すると再利用ワークフロー経由の利用者にだけ古い設定が配られてしまう。
+              # 目視だけが担保だと実際に`Agent`や`mcp__plugin_*`の追加を取りこぼしたので、
+              # `self-version`と同じくtreefmtのフォーマッタとして検査する。
+              # 書き換えはせず検査だけを行う。
+              action-workflow-sync = {
+                command = pkgs.writeShellApplication {
+                  name = "action-workflow-sync";
+                  runtimeInputs = with pkgs; [
+                    diffutils
+                    yq-go
+                  ];
+                  text = ''
+                    action=${./action.yml}
+                    workflow=${./.github/workflows/review.yml}
+                    errors=0
+
+                    # 差分を読みやすく表示します。
+                    # `diff`は差異があると非0で終了するので`set -e`から守ります。
+                    report() {
+                      echo "action-workflow-sync: $1" >&2
+                      diff --unified --label review.yml --label action.yml \
+                        <(echo "$2") <(echo "$3") >&2 || true
+                      errors=$((errors + 1))
+                    }
+
+                    # 入力の名前とデフォルトと説明。
+                    # 認証情報はワークフロー側ではsecretsで受け取り、
+                    # `runs-on`などはワークフロー固有なので比較から除きます。
+                    # ワークフローの`type: boolean`はYAMLの真偽値になるので、
+                    # actionの文字列と揃うように`tostring`で正規化します。
+                    workflow_only='del(.["runs-on"], .["timeout-minutes"], .["fetch-depth"])'
+                    secrets='del(.claude_code_oauth_token,
+                                 .anthropic_api_key,
+                                 .custom_github_token)'
+                    normalize='to_entries
+                      | map({"key": .key,
+                             "value": {"default": (.value.default | tostring),
+                                       "description": (.value.description // "")}})
+                      | sort_by(.key) | from_entries'
+                    # コメントは両ファイルで異なるので、JSONにして落とします。
+                    action_inputs=$(yq -o=json \
+                      ".inputs | $secrets | $normalize" "$action")
+                    workflow_inputs=$(yq -o=json \
+                      ".on.workflow_call.inputs | $workflow_only | $normalize" "$workflow")
+                    if [ "$action_inputs" != "$workflow_inputs" ]; then
+                      report "inputs differ." "$workflow_inputs" "$action_inputs"
+                    fi
+
+                    # 再利用ワークフローは入力を宣言するだけでは足りず、
+                    # kyoseiステップの`with:`で渡さないと黙って無視されます。
+                    # 入力名の集合と`with:`のキーの集合が一致することを検査します。
+                    action_names=$(yq '.inputs | keys | .[]' "$action")
+                    passed=$(yq '(.jobs.*.steps[]
+                      | select(.uses | test("kyosei-action")) | .with) | keys | .[]' "$workflow")
+                    if [ "$action_names" != "$passed" ]; then
+                      report "inputs passed with the kyosei step differ." "$passed" "$action_names"
+                    fi
+
+                    if [ "$errors" -gt 0 ]; then
+                      exit 1
+                    fi
+                  '';
+                };
+                includes = [
+                  ".github/workflows/review.yml"
+                  "action.yml"
+                ];
+              };
               zizmor.options = [ "--pedantic" ];
             };
+          };
+          checks = {
+            lint-tsc = mkNpmCheck "lint-tsc" "lint:tsc";
+            test = mkNpmCheck "test" "test";
           };
           packages = {
             # flake.lockの管理バージョンをre-exportすることで安定した利用を促進。
@@ -115,7 +237,12 @@
 
               # nixの関連ツール。
               nix-fast-build
+
+              # Node.js
+              nodejs
             ];
+            packages = [ pkgs.importNpmLock.hooks.linkNodeModulesHook ];
+            npmDeps = nodeModules;
           };
         };
     };

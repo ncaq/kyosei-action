@@ -74,8 +74,11 @@ inputs:
     default: ""
   settings:
     description: >-
-      Claude Code settings as a JSON string or path to a JSON file.
-      Merged with existing settings (input takes precedence).
+      Claude Code settings as a JSON object, or a path to a file containing one.
+      The job fails when it is neither, because the value is parsed here
+      to merge it with the `permissions.additionalDirectories` built from
+      the `additional_directories` input.
+      Also merged with existing settings (input takes precedence).
       Can configure hooks, env, MCP settings, etc.
     required: false
     default: ""
@@ -99,8 +102,21 @@ inputs:
   allowed_tools:
     description: >-
       Allowed tools for Claude Code (newline-separated, replaces the default set below).
-      The default is limited to read-only, non-destructive tools;
-      posting reviews is handled by the kyosei skill itself, not directly by Claude.
+      The default allows `Bash` without any command restriction and `Write`,
+      because the kyosei plugin runs its own bundled binaries
+      whose names and paths differ per release,
+      reviewers write intermediate results to scratch files,
+      and `node` alone already permits arbitrary code execution anyway.
+      Reviewer subagents restrict their own tools in agent frontmatter,
+      but that is not a boundary because general-purpose subagents
+      inherit the tools of the session that started them.
+      The disposable runner only protects the working tree:
+      the session can read the credentials in the process environment
+      and has ways to send them elsewhere.
+      Since the pull request text it reads is attacker controlled,
+      replace this default with a stricter policy
+      when you review untrusted input such as fork pull requests.
+      See the README for details.
       List each GitHub MCP tool individually as `mcp__github__<tool_name>`,
       because claude-code-action only starts the GitHub MCP server
       when a tool name begins with `mcp__github__`
@@ -114,45 +130,7 @@ inputs:
     required: false
     default: |
       Agent
-      Bash(awk:*)
-      Bash(gh issue list:*)
-      Bash(gh issue status:*)
-      Bash(gh issue view:*)
-      Bash(gh label list:*)
-      Bash(gh label view:*)
-      Bash(gh pr checks:*)
-      Bash(gh pr diff:*)
-      Bash(gh pr list:*)
-      Bash(gh pr status:*)
-      Bash(gh pr view:*)
-      Bash(gh release list:*)
-      Bash(gh release view:*)
-      Bash(gh repo view:*)
-      Bash(gh ruleset list:*)
-      Bash(gh ruleset view:*)
-      Bash(gh run list:*)
-      Bash(gh run view:*)
-      Bash(gh search:*)
-      Bash(gh status:*)
-      Bash(gh workflow list:*)
-      Bash(gh workflow view:*)
-      Bash(git blame:*)
-      Bash(git cat-file:*)
-      Bash(git describe:*)
-      Bash(git diff:*)
-      Bash(git for-each-ref:*)
-      Bash(git log:*)
-      Bash(git ls-files:*)
-      Bash(git ls-remote:*)
-      Bash(git ls-tree:*)
-      Bash(git rev-list:*)
-      Bash(git rev-parse:*)
-      Bash(git shortlog:*)
-      Bash(git show-branch:*)
-      Bash(git show:*)
-      Bash(git status:*)
-      Bash(jq:*)
-      Bash(node:*)
+      Bash
       Glob
       Grep
       Read
@@ -161,6 +139,7 @@ inputs:
       TodoWrite
       WebFetch
       WebSearch
+      Write
       mcp__backlog__get_issue
       mcp__backlog__get_issue_comments
       mcp__backlog__get_issues
@@ -229,6 +208,21 @@ inputs:
     description: Additional allowed tools to append to allowed_tools (newline-separated)
     required: false
     default: ""
+  additional_directories:
+    description: >-
+      Extra directories Claude may read and write outside the workspace
+      (newline-separated absolute paths).
+      These are appended to the built-in ones,
+      which are `$RUNNER_TEMP`, `$XDG_RUNTIME_DIR` and `$TMPDIR` (or `/tmp`)
+      when they exist and are writable.
+      The kyosei skill writes review information files under those directories,
+      and Claude Code puts its own scratch files there,
+      so tools would otherwise be denied for being outside the workspace.
+      The action merges this list into the settings it passes to claude-code-action
+      as `permissions.additionalDirectories`,
+      together with whatever the `settings` input already contains.
+    required: false
+    default: ""
   claude_args:
     description: >-
       Additional arguments to pass to Claude CLI
@@ -269,6 +263,7 @@ inputs:
     required: false
     default: |-
       kyosei@konoka
+      nix-tasuke@konoka
       research@konoka
 
   # Self-hosted runner support
@@ -472,6 +467,30 @@ runs:
         echo "joined=$joined" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
 
+    # 組み立ての中身は`script/build-settings.ts`にある。
+    # Node.jsは型注釈を剥がして`.ts`をそのまま実行できるので、ビルド成果物は持たない。
+    - name: Build settings
+      id: build-settings
+      shell: bash
+      env:
+        SETTINGS: ${{ inputs.settings }}
+        ADDITIONAL_DIRECTORIES: ${{ inputs.additional_directories }}
+      run: |
+        echo "::group::Build settings"
+        # The script writes the merged settings to a file and prints its path,
+        # because the runner expands `with:` into the log
+        # and the settings may hold secrets.
+        if ! path=$(node "$GITHUB_ACTION_PATH/script/build-settings-main.ts"); then
+          echo "::error::Failed to build Claude Code settings. See the log above."
+          exit 1
+        fi
+        if [ -z "$path" ]; then
+          echo "::error::The settings builder produced no output."
+          exit 1
+        fi
+        echo "path=$path" >> "$GITHUB_OUTPUT"
+        echo "::endgroup::"
+
     - name: Write user request for slash command support
       shell: bash
       env:
@@ -618,7 +637,7 @@ runs:
         include_comments_by_actor: ${{ inputs.include_comments_by_actor }}
         exclude_comments_by_actor: ${{ inputs.exclude_comments_by_actor }}
         additional_permissions: ${{ inputs.additional_permissions }}
-        settings: ${{ inputs.settings }}
+        settings: ${{ steps.build-settings.outputs.path }}
         include_fix_links: ${{ inputs.include_fix_links == 'true' && 'true' || 'false' }}
         display_report: ${{ steps.resolve-display-report.outputs.enabled }}
         # Enable full output when explicitly requested,
