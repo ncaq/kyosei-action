@@ -181,6 +181,58 @@ describe("buildSettings", () => {
     });
   });
 
+  it("同じディレクトリを指す組み込みの重複を落とします", async (t) => {
+    // self-hosted runnerなどでは`RUNNER_TEMP`と`TMPDIR`が同じ値になることがあります。
+    const temporary = await makeDirectory(t);
+    const runtime = await makeDirectory(t);
+    const settings = await buildSettings({
+      RUNNER_TEMP: temporary,
+      XDG_RUNTIME_DIR: runtime,
+      TMPDIR: temporary,
+    });
+    assert.deepEqual(settings, {
+      permissions: { additionalDirectories: [temporary, runtime] },
+    });
+  });
+
+  it("利用者が組み込みと同じディレクトリを書いても重複を落とします", async (t) => {
+    const temporary = await makeDirectory(t);
+    const settings = await buildSettings({
+      TMPDIR: temporary,
+      ADDITIONAL_DIRECTORIES: temporary,
+      SETTINGS: JSON.stringify({ permissions: { additionalDirectories: [temporary] } }),
+    });
+    assert.deepEqual(settings, {
+      permissions: { additionalDirectories: [temporary] },
+    });
+  });
+
+  it("末尾のスラッシュを落とします", async (t) => {
+    const temporary = await makeDirectory(t);
+    const additional = await makeDirectory(t);
+    const settings = await buildSettings({
+      TMPDIR: `${temporary}/`,
+      ADDITIONAL_DIRECTORIES: `${additional}/`,
+    });
+    assert.deepEqual(settings, {
+      permissions: { additionalDirectories: [temporary, additional] },
+    });
+  });
+
+  it("実在しないadditional_directoriesもそのまま許可します", async (t) => {
+    // 組み込みと違って利用者が明示したものは黙って捨てません。
+    // マウントされる前のディレクトリなどを先に許可しておけるようにするためです。
+    const temporary = await makeDirectory(t);
+    const additional = join(temporary, "nonexistent");
+    const settings = await buildSettings({
+      TMPDIR: temporary,
+      ADDITIONAL_DIRECTORIES: additional,
+    });
+    assert.deepEqual(settings, {
+      permissions: { additionalDirectories: [temporary, additional] },
+    });
+  });
+
   it("利用者のadditionalDirectoriesを組み込みの後ろに繋げます", async (t) => {
     const temporary = await makeDirectory(t);
     const settings = await buildSettings({
