@@ -7,10 +7,10 @@
     "test": "node --test"
   },
   "devDependencies": {
-    "@types/node": "24.9.2",
+    "@types/node": "24.13.3",
     "typescript": "6.0.3"
   },
   "engines": {
-    "node": ">=24.9.2"
+    "node": ">=24.13.3"
   }
 }
