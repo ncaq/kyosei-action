@@ -25,6 +25,7 @@ export type Environment = {
   readonly RUNNER_TEMP?: string | undefined;
   readonly XDG_RUNTIME_DIR?: string | undefined;
   readonly TMPDIR?: string | undefined;
+  readonly RUNNER_DEBUG?: string | undefined;
 };
 
 /** 利用者の入力が不正であることを表す失敗。 */
@@ -181,15 +182,29 @@ export async function buildSettings(environment: Environment): Promise<Settings>
 }
 
 async function main(): Promise<void> {
-  const merged = await buildSettings({
+  const environment: Environment = {
     SETTINGS: process.env["SETTINGS"],
     ADDITIONAL_DIRECTORIES: process.env["ADDITIONAL_DIRECTORIES"],
     RUNNER_TEMP: process.env["RUNNER_TEMP"],
     XDG_RUNTIME_DIR: process.env["XDG_RUNTIME_DIR"],
     TMPDIR: process.env["TMPDIR"],
-  });
+    RUNNER_DEBUG: process.env["RUNNER_DEBUG"],
+  };
+  const merged = await buildSettings(environment);
+  // `settings`はhooksや`env`を設定できるので、
+  // マージ結果全体はAPIキーなどを含み得ます。
+  // 特にファイル経由で読んだ内容はGitHub Actionsのシークレットマスクの対象にならず、
+  // 公開リポジトリでは誰でも読めるログに平文で残ります。
+  // そのため通常は許可したディレクトリだけを出して、
+  // 全体はデバッグログが有効な時にだけ出します。
+  //
   // 標準出力は呼び出し元がそのまま`$GITHUB_OUTPUT`へ書くので、ログは標準エラーに出します。
-  process.stderr.write(`Settings: ${JSON.stringify(merged)}\n`);
+  const permissions = merged["permissions"];
+  const directories = isSettings(permissions) ? permissions["additionalDirectories"] : undefined;
+  process.stderr.write(`Additional directories: ${JSON.stringify(directories)}\n`);
+  if (environment.RUNNER_DEBUG === "1") {
+    process.stderr.write(`Settings: ${JSON.stringify(merged)}\n`);
+  }
   process.stdout.write(`${JSON.stringify(merged)}\n`);
 }
 
