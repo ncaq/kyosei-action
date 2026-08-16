@@ -78,7 +78,9 @@ on:
       settings:
         description: >-
           Claude Code settings as a JSON string or path to a JSON file.
-          Merged with existing settings (input takes precedence).
+          Merged with existing settings (input takes precedence)
+          and with the `permissions.additionalDirectories` built from
+          the `additional_directories` input.
           Can configure hooks, env, MCP settings, etc.
         type: string
         required: false
@@ -105,7 +107,14 @@ on:
       allowed_tools:
         description: >-
           Allowed tools for Claude Code (newline-separated, replaces default set).
-          Restricted to read-only commands and non-destructive tools.
+          The default allows `Bash` without any command restriction and `Write`,
+          because the kyosei plugin runs its own bundled binaries
+          whose names and paths differ per release,
+          reviewers write intermediate results to scratch files,
+          and `node` alone already permits arbitrary code execution anyway.
+          Reviewer subagents restrict their own tools in agent frontmatter,
+          and this workflow normally runs on an isolated GitHub Runner
+          whose working tree is discarded after the job.
           Mutations such as posting reviews are performed by the kyosei skill
           via its Node.js implementation rather than by Claude directly.
           GitHub MCP tools must be listed individually
@@ -117,45 +126,7 @@ on:
         type: string
         required: false
         default: |
-          Bash(awk:*)
-          Bash(gh issue list:*)
-          Bash(gh issue status:*)
-          Bash(gh issue view:*)
-          Bash(gh label list:*)
-          Bash(gh label view:*)
-          Bash(gh pr checks:*)
-          Bash(gh pr diff:*)
-          Bash(gh pr list:*)
-          Bash(gh pr status:*)
-          Bash(gh pr view:*)
-          Bash(gh release list:*)
-          Bash(gh release view:*)
-          Bash(gh repo view:*)
-          Bash(gh ruleset list:*)
-          Bash(gh ruleset view:*)
-          Bash(gh run list:*)
-          Bash(gh run view:*)
-          Bash(gh search:*)
-          Bash(gh status:*)
-          Bash(gh workflow list:*)
-          Bash(gh workflow view:*)
-          Bash(git blame:*)
-          Bash(git cat-file:*)
-          Bash(git describe:*)
-          Bash(git diff:*)
-          Bash(git for-each-ref:*)
-          Bash(git log:*)
-          Bash(git ls-files:*)
-          Bash(git ls-remote:*)
-          Bash(git ls-tree:*)
-          Bash(git rev-list:*)
-          Bash(git rev-parse:*)
-          Bash(git shortlog:*)
-          Bash(git show:*)
-          Bash(git show-branch:*)
-          Bash(git status:*)
-          Bash(jq:*)
-          Bash(node:*)
+          Bash
           Glob
           Grep
           Read
@@ -164,6 +135,7 @@ on:
           TodoWrite
           WebFetch
           WebSearch
+          Write
           mcp__github__get_code_scanning_alert
           mcp__github__get_commit
           mcp__github__get_dependabot_alert
@@ -211,6 +183,19 @@ on:
           mcp__github__search_users
       additional_allowed_tools:
         description: Additional allowed tools to append to allowed_tools (newline-separated)
+        type: string
+        required: false
+        default: ""
+      additional_directories:
+        description: >-
+          Extra directories Claude may read and write outside the workspace
+          (newline-separated absolute paths).
+          These are appended to the built-in ones,
+          which are `$RUNNER_TEMP`, `$XDG_RUNTIME_DIR` and `$TMPDIR` (or `/tmp`)
+          when they exist.
+          The kyosei skill writes review information files under those directories,
+          and Claude Code puts its own scratch files there,
+          so tools would otherwise be denied for being outside the workspace.
         type: string
         required: false
         default: ""
@@ -365,6 +350,7 @@ jobs:
           effort: ${{ inputs.effort }}
           allowed_tools: ${{ inputs.allowed_tools }}
           additional_allowed_tools: ${{ inputs.additional_allowed_tools }}
+          additional_directories: ${{ inputs.additional_directories }}
           claude_args: ${{ inputs.claude_args }}
           include_fix_links: ${{ inputs.include_fix_links && 'true' || 'false' }}
           display_report: ${{ inputs.display_report }}
