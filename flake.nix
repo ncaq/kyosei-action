@@ -138,6 +138,61 @@
                   "VERSION" # 編集はしないけどトリガーのために含める。
                 ];
               };
+              # `review.yml`は`action.yml`の入力を再宣言してそのまま渡すため、
+              # 乖離すると再利用ワークフロー経由の利用者にだけ古い設定が配られてしまう。
+              # 目視だけが担保だと実際に`Agent`や`mcp__plugin_*`の追加を取りこぼしたので、
+              # `self-version`と同じくtreefmtのフォーマッタとして検査する。
+              # 書き換えはせず検査だけを行う。
+              action-workflow-sync = {
+                command = pkgs.writeShellApplication {
+                  name = "action-workflow-sync";
+                  runtimeInputs = with pkgs; [
+                    diffutils
+                    yq-go
+                  ];
+                  text = ''
+                    action=${./action.yml}
+                    workflow=${./.github/workflows/review.yml}
+                    errors=0
+
+                    # 差分を読みやすく表示します。
+                    # `diff`は差異があると非0で終了するので`set -e`から守ります。
+                    report() {
+                      echo "action-workflow-sync: $1" >&2
+                      diff --unified --label review.yml --label action.yml \
+                        <(echo "$2") <(echo "$3") >&2 || true
+                      errors=$((errors + 1))
+                    }
+
+                    # `allowed_tools`のデフォルトの一覧。
+                    action_tools=$(yq '.inputs.allowed_tools.default' "$action")
+                    workflow_tools=$(yq '.on.workflow_call.inputs.allowed_tools.default' "$workflow")
+                    if [ "$action_tools" != "$workflow_tools" ]; then
+                      report "allowed_tools default differs." "$workflow_tools" "$action_tools"
+                    fi
+
+                    # 入力名の集合。
+                    # 認証情報はワークフロー側ではsecretsで受け取り、
+                    # `runs-on`などはワークフロー固有なので比較から除きます。
+                    workflow_only='["runs-on", "timeout-minutes", "fetch-depth"]'
+                    secrets='["claude_code_oauth_token", "anthropic_api_key", "custom_github_token"]'
+                    action_inputs=$(yq ".inputs | keys - $secrets | .[]" "$action")
+                    workflow_inputs=$(yq \
+                      ".on.workflow_call.inputs | keys - $workflow_only | .[]" "$workflow")
+                    if [ "$action_inputs" != "$workflow_inputs" ]; then
+                      report "input names differ." "$workflow_inputs" "$action_inputs"
+                    fi
+
+                    if [ "$errors" -gt 0 ]; then
+                      exit 1
+                    fi
+                  '';
+                };
+                includes = [
+                  ".github/workflows/review.yml"
+                  "action.yml"
+                ];
+              };
               zizmor.options = [ "--pedantic" ];
             };
           };
