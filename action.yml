@@ -99,8 +99,13 @@ inputs:
   allowed_tools:
     description: >-
       Allowed tools for Claude Code (newline-separated, replaces the default set below).
-      The default is limited to read-only, non-destructive tools;
-      posting reviews is handled by the kyosei skill itself, not directly by Claude.
+      The default allows `Bash` without any command restriction,
+      because the kyosei plugin runs its own bundled binaries
+      whose names and paths differ per release,
+      and `node` alone already permits arbitrary code execution.
+      Reviewer subagents restrict their own tools in agent frontmatter,
+      and this action normally runs on an isolated GitHub Runner.
+      Replace this default if you need a stricter policy.
       List each GitHub MCP tool individually as `mcp__github__<tool_name>`,
       because claude-code-action only starts the GitHub MCP server
       when a tool name begins with `mcp__github__`
@@ -114,45 +119,7 @@ inputs:
     required: false
     default: |
       Agent
-      Bash(awk:*)
-      Bash(gh issue list:*)
-      Bash(gh issue status:*)
-      Bash(gh issue view:*)
-      Bash(gh label list:*)
-      Bash(gh label view:*)
-      Bash(gh pr checks:*)
-      Bash(gh pr diff:*)
-      Bash(gh pr list:*)
-      Bash(gh pr status:*)
-      Bash(gh pr view:*)
-      Bash(gh release list:*)
-      Bash(gh release view:*)
-      Bash(gh repo view:*)
-      Bash(gh ruleset list:*)
-      Bash(gh ruleset view:*)
-      Bash(gh run list:*)
-      Bash(gh run view:*)
-      Bash(gh search:*)
-      Bash(gh status:*)
-      Bash(gh workflow list:*)
-      Bash(gh workflow view:*)
-      Bash(git blame:*)
-      Bash(git cat-file:*)
-      Bash(git describe:*)
-      Bash(git diff:*)
-      Bash(git for-each-ref:*)
-      Bash(git log:*)
-      Bash(git ls-files:*)
-      Bash(git ls-remote:*)
-      Bash(git ls-tree:*)
-      Bash(git rev-list:*)
-      Bash(git rev-parse:*)
-      Bash(git shortlog:*)
-      Bash(git show-branch:*)
-      Bash(git show:*)
-      Bash(git status:*)
-      Bash(jq:*)
-      Bash(node:*)
+      Bash
       Glob
       Grep
       Read

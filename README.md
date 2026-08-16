@@ -332,10 +332,23 @@ Set to an empty string to omit the flag and use the model default.
 Default: see the `allowed_tools` default in [action.yml](./action.yml).
 
 Allowed tools for Claude Code (newline-separated, replaces default set).
-Restricted to read-only commands and non-destructive tools.
 
 Mutations such as posting reviews are performed by the kyosei skill
 via its Node.js implementation rather than by Claude directly.
+
+###### Bash
+
+The default allows `Bash` without any command restriction.
+
+The kyosei plugin runs its own bundled binaries whose names and paths differ per release,
+so an allowlist of individual commands cannot cover them.
+`node` alone already permits arbitrary code execution,
+so restricting the rest gains little.
+
+Reviewer subagents restrict their own tools in agent frontmatter,
+and this action normally runs on an isolated GitHub Runner.
+
+Replace this default if you need a stricter policy.
 
 ###### GitHub MCP
 
@@ -487,8 +500,8 @@ To add tools without replacing the defaults, use `additional_allowed_tools`:
   with:
     claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
     additional_allowed_tools: |
-      Bash(npm test)
       Edit
+      Write
 ```
 
 ### Outputs
