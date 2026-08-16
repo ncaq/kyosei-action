@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, it } from "node:test";
@@ -16,7 +16,7 @@ describe("buildSettings", () => {
     const temporary = await makeDirectory();
     const settings = await buildSettings({ RUNNER_TEMP: runnerTemp, TMPDIR: temporary });
     assert.deepEqual(settings, {
-      permissions: { additionalDirectories: [runnerTemp, temporary].sort() },
+      permissions: { additionalDirectories: [runnerTemp, temporary] },
     });
   });
 
@@ -60,5 +60,77 @@ describe("buildSettings", () => {
       buildSettings({ TMPDIR: temporary, SETTINGS: join(temporary, "nonexistent.json") }),
       /settings is neither valid JSON nor a readable file/,
     );
+  });
+
+  it("オブジェクトではないsettingsを拒否します", async () => {
+    const temporary = await makeDirectory();
+    for (const settings of ["null", '"foo"', "[]", "42"]) {
+      await assert.rejects(
+        buildSettings({ TMPDIR: temporary, SETTINGS: settings }),
+        /settings must be a JSON object/,
+        `settings=${settings}`,
+      );
+    }
+  });
+
+  it("additional_directoriesの前後の空白を落とします", async () => {
+    const temporary = await makeDirectory();
+    const additional = await makeDirectory();
+    const settings = await buildSettings({
+      TMPDIR: temporary,
+      ADDITIONAL_DIRECTORIES: `  ${additional}  \n`,
+    });
+    assert.deepEqual(settings, {
+      permissions: { additionalDirectories: [temporary, additional] },
+    });
+  });
+
+  it("絶対パスではないadditional_directoriesを拒否します", async () => {
+    const temporary = await makeDirectory();
+    for (const directory of ["relative/path", "/", "./here"]) {
+      await assert.rejects(
+        buildSettings({ TMPDIR: temporary, ADDITIONAL_DIRECTORIES: directory }),
+        /must be an absolute path/,
+        `directory=${directory}`,
+      );
+    }
+  });
+
+  it("ディレクトリの解決順を保ちます", async () => {
+    // 辞書順に並べ替えられていないことを確かめるため、逆順になる名前を与えます。
+    const runnerTemp = join(await makeDirectory(), "c");
+    const runtime = join(await makeDirectory(), "b");
+    const temporary = join(await makeDirectory(), "a");
+    for (const directory of [runnerTemp, runtime, temporary]) {
+      await mkdir(directory);
+    }
+    const additional = join(await makeDirectory(), "0");
+    await mkdir(additional);
+
+    const settings = await buildSettings({
+      RUNNER_TEMP: runnerTemp,
+      XDG_RUNTIME_DIR: runtime,
+      TMPDIR: temporary,
+      ADDITIONAL_DIRECTORIES: additional,
+    });
+    assert.deepEqual(settings, {
+      permissions: { additionalDirectories: [runnerTemp, runtime, temporary, additional] },
+    });
+  });
+
+  it("利用者のadditionalDirectoriesを組み込みの後ろに繋げます", async () => {
+    const temporary = await makeDirectory();
+    const settings = await buildSettings({
+      TMPDIR: temporary,
+      SETTINGS: JSON.stringify({
+        permissions: { additionalDirectories: ["/opt/cache"], deny: ["Read(./secret)"] },
+      }),
+    });
+    assert.deepEqual(settings, {
+      permissions: {
+        additionalDirectories: [temporary, "/opt/cache"],
+        deny: ["Read(./secret)"],
+      },
+    });
   });
 });
