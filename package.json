@@ -1,0 +1,16 @@
+{
+  "name": "kyosei-action",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint:tsc": "tsc --noEmit",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "@types/node": "24.9.2",
+    "typescript": "6.0.3"
+  },
+  "engines": {
+    "node": ">=24.9.2"
+  }
+}

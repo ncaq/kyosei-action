@@ -26,9 +26,58 @@
 
       perSystem =
         {
+          lib,
           pkgs,
           ...
         }:
+        let
+          inherit (pkgs) nodejs;
+
+          npmFileset = lib.fileset.unions [
+            ./package.json
+            ./package-lock.json
+          ];
+
+          npmRoot = lib.fileset.toSource {
+            root = ./.;
+            fileset = npmFileset;
+          };
+
+          nodeModules = pkgs.importNpmLock.buildNodeModules {
+            inherit
+              nodejs
+              npmRoot
+              ;
+          };
+
+          tsRoot = lib.fileset.toSource {
+            root = ./.;
+            fileset = lib.fileset.unions [
+              npmFileset
+
+              ./script
+              ./test
+
+              ./.editorconfig
+              ./.gitignore
+              ./tsconfig.json
+            ];
+          };
+
+          # npm run経由でスクリプト実行を簡単にするためのヘルパー。
+          mkNpmCheck =
+            name: script:
+            pkgs.runCommand name
+              {
+                nativeBuildInputs = [ nodejs ];
+              }
+              ''
+                cp -r ${tsRoot}/. .
+                ln -s ${nodeModules}/node_modules node_modules
+                npm run ${script}
+                touch $out
+              '';
+        in
         {
           treefmt.config = {
             projectRootFile = "flake.nix";
@@ -92,6 +141,10 @@
               zizmor.options = [ "--pedantic" ];
             };
           };
+          checks = {
+            lint-tsc = mkNpmCheck "lint-tsc" "lint:tsc";
+            test = mkNpmCheck "test" "test";
+          };
           packages = {
             # flake.lockの管理バージョンをre-exportすることで安定した利用を促進。
             inherit (pkgs)
@@ -115,7 +168,12 @@
 
               # nixの関連ツール。
               nix-fast-build
+
+              # Node.js
+              nodejs
             ];
+            packages = [ pkgs.importNpmLock.hooks.linkNodeModulesHook ];
+            npmDeps = nodeModules;
           };
         };
     };
