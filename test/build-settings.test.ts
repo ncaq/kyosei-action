@@ -97,15 +97,16 @@ describe("buildSettings", () => {
   });
 
   it("ディレクトリの解決順を保ちます", async () => {
-    // 辞書順に並べ替えられていないことを確かめるため、逆順になる名前を与えます。
-    const runnerTemp = join(await makeDirectory(), "c");
-    const runtime = join(await makeDirectory(), "b");
-    const temporary = join(await makeDirectory(), "a");
-    for (const directory of [runnerTemp, runtime, temporary]) {
+    // 辞書順に並べ替えられていないことを確かめるため、
+    // 同じ親の下に辞書順とは逆になる名前で作ります。
+    const parent = await makeDirectory();
+    const runnerTemp = join(parent, "d");
+    const runtime = join(parent, "c");
+    const temporary = join(parent, "b");
+    const additional = join(parent, "a");
+    for (const directory of [runnerTemp, runtime, temporary, additional]) {
       await mkdir(directory);
     }
-    const additional = join(await makeDirectory(), "0");
-    await mkdir(additional);
 
     const settings = await buildSettings({
       RUNNER_TEMP: runnerTemp,

@@ -92,9 +92,9 @@ function inputDirectories(environment: Environment): string[] {
     });
 }
 
-/** 重複を除きます。 */
+/** 与えられた順序を保ったまま重複を除きます。 */
 function deduplicate(directories: readonly string[]): string[] {
-  return [...new Set(directories)].sort();
+  return [...new Set(directories)];
 }
 
 /**
