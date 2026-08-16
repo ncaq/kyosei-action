@@ -22,6 +22,9 @@ async function makeDirectory(t: TestContext): Promise<string> {
   return directory;
 }
 
+/** `promisify(execFile)`が失敗時に投げるエラー。 */
+type ExecFileError = Error & { code?: number | string; stdout: string; stderr: string };
+
 /** エントリを子プロセスとして実行します。環境変数はここで渡したものだけになります。 */
 async function runEntry(
   environment: Record<string, string>,
@@ -77,11 +80,18 @@ describe("build-settings-main", () => {
     assert.match(stderr, /Settings:.*s3cret/);
   });
 
-  it("入力が不正なら失敗します", async (t) => {
+  it("入力が不正なら非0で終了して何も出力しません", async (t) => {
     const runnerTemp = await makeDirectory(t);
+    // `action.yml`は`if ! path=$(node ...)`で終了コードを見た上で、
+    // `[ -z "$path" ]`でも弾くので、その両方を確かめます。
     await assert.rejects(
       runEntry({ RUNNER_TEMP: runnerTemp, TMPDIR: runnerTemp, SETTINGS: "42" }),
-      /settings must be a JSON object/,
+      (error: ExecFileError) => {
+        assert.equal(error.code, 1);
+        assert.equal(error.stdout, "");
+        assert.match(error.stderr, /settings must be a JSON object/);
+        return true;
+      },
     );
   });
 });
