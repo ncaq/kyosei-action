@@ -1,27 +1,31 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, it } from "node:test";
+import { describe, it, type TestContext } from "node:test";
 import { buildSettings } from "../script/build-settings.ts";
 
-/** 実在するディレクトリを1つ用意します。 */
-async function makeDirectory(): Promise<string> {
-  return await mkdtemp(join(tmpdir(), "build-settings-"));
+/** 実在するディレクトリを1つ用意して、テストの終了時に消します。 */
+async function makeDirectory(t: TestContext): Promise<string> {
+  const directory = await mkdtemp(join(tmpdir(), "build-settings-"));
+  t.after(async () => {
+    await rm(directory, { recursive: true, force: true });
+  });
+  return directory;
 }
 
 describe("buildSettings", () => {
-  it("組み込みのディレクトリを許可します", async () => {
-    const runnerTemp = await makeDirectory();
-    const temporary = await makeDirectory();
+  it("組み込みのディレクトリを許可します", async (t) => {
+    const runnerTemp = await makeDirectory(t);
+    const temporary = await makeDirectory(t);
     const settings = await buildSettings({ RUNNER_TEMP: runnerTemp, TMPDIR: temporary });
     assert.deepEqual(settings, {
       permissions: { additionalDirectories: [runnerTemp, temporary] },
     });
   });
 
-  it("実在しないディレクトリを除きます", async () => {
-    const temporary = await makeDirectory();
+  it("実在しないディレクトリを除きます", async (t) => {
+    const temporary = await makeDirectory(t);
     const settings = await buildSettings({
       RUNNER_TEMP: join(temporary, "nonexistent"),
       TMPDIR: temporary,
@@ -31,8 +35,8 @@ describe("buildSettings", () => {
     });
   });
 
-  it("settingsのJSON文字列をマージします", async () => {
-    const temporary = await makeDirectory();
+  it("settingsのJSON文字列をマージします", async (t) => {
+    const temporary = await makeDirectory(t);
     const settings = await buildSettings({
       TMPDIR: temporary,
       SETTINGS: JSON.stringify({ env: { FOO: "bar" } }),
@@ -43,8 +47,8 @@ describe("buildSettings", () => {
     });
   });
 
-  it("settingsをファイルパスとしても読みます", async () => {
-    const temporary = await makeDirectory();
+  it("settingsをファイルパスとしても読みます", async (t) => {
+    const temporary = await makeDirectory(t);
     const path = join(temporary, "settings.json");
     await writeFile(path, JSON.stringify({ env: { FOO: "bar" } }));
     const settings = await buildSettings({ TMPDIR: temporary, SETTINGS: path });
@@ -54,16 +58,16 @@ describe("buildSettings", () => {
     });
   });
 
-  it("読めないsettingsを拒否します", async () => {
-    const temporary = await makeDirectory();
+  it("読めないsettingsを拒否します", async (t) => {
+    const temporary = await makeDirectory(t);
     await assert.rejects(
       buildSettings({ TMPDIR: temporary, SETTINGS: join(temporary, "nonexistent.json") }),
       /settings is neither valid JSON nor a readable file/,
     );
   });
 
-  it("オブジェクトではないsettingsを拒否します", async () => {
-    const temporary = await makeDirectory();
+  it("オブジェクトではないsettingsを拒否します", async (t) => {
+    const temporary = await makeDirectory(t);
     for (const settings of ["null", '"foo"', "[]", "42"]) {
       await assert.rejects(
         buildSettings({ TMPDIR: temporary, SETTINGS: settings }),
@@ -73,9 +77,9 @@ describe("buildSettings", () => {
     }
   });
 
-  it("additional_directoriesの前後の空白を落とします", async () => {
-    const temporary = await makeDirectory();
-    const additional = await makeDirectory();
+  it("additional_directoriesの前後の空白を落とします", async (t) => {
+    const temporary = await makeDirectory(t);
+    const additional = await makeDirectory(t);
     const settings = await buildSettings({
       TMPDIR: temporary,
       ADDITIONAL_DIRECTORIES: `  ${additional}  \n`,
@@ -85,8 +89,8 @@ describe("buildSettings", () => {
     });
   });
 
-  it("絶対パスではないadditional_directoriesを拒否します", async () => {
-    const temporary = await makeDirectory();
+  it("絶対パスではないadditional_directoriesを拒否します", async (t) => {
+    const temporary = await makeDirectory(t);
     for (const directory of ["relative/path", "/", "./here"]) {
       await assert.rejects(
         buildSettings({ TMPDIR: temporary, ADDITIONAL_DIRECTORIES: directory }),
@@ -96,10 +100,10 @@ describe("buildSettings", () => {
     }
   });
 
-  it("ディレクトリの解決順を保ちます", async () => {
+  it("ディレクトリの解決順を保ちます", async (t) => {
     // 辞書順に並べ替えられていないことを確かめるため、
     // 同じ親の下に辞書順とは逆になる名前で作ります。
-    const parent = await makeDirectory();
+    const parent = await makeDirectory(t);
     const runnerTemp = join(parent, "d");
     const runtime = join(parent, "c");
     const temporary = join(parent, "b");
@@ -119,8 +123,8 @@ describe("buildSettings", () => {
     });
   });
 
-  it("利用者のadditionalDirectoriesを組み込みの後ろに繋げます", async () => {
-    const temporary = await makeDirectory();
+  it("利用者のadditionalDirectoriesを組み込みの後ろに繋げます", async (t) => {
+    const temporary = await makeDirectory(t);
     const settings = await buildSettings({
       TMPDIR: temporary,
       SETTINGS: JSON.stringify({
