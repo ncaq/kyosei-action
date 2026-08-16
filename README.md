@@ -415,11 +415,16 @@ Claude Code refuses file tools outside the working directory,
 but the kyosei skill writes review information files under a private work directory,
 and Claude Code puts its own scratch files under the temporary directory.
 The built-in list therefore covers `$RUNNER_TEMP`, `$XDG_RUNTIME_DIR`
-and `$TMPDIR` (or `/tmp`), whichever of them exist,
+and `$TMPDIR` (or `/tmp`), whichever of them exist and are writable,
 matching the order the kyosei skill resolves its work directory in.
 
 This input is appended to that built-in list,
 so it only adds directories and never removes them.
+
+Unlike the built-in ones, the directories given here are not checked for existence,
+so you can allow a path before whatever creates it runs.
+They must be absolute, though:
+the job fails when a line is anything else, `/` included.
 
 ##### `claude_args`
 
