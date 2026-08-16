@@ -477,11 +477,14 @@ runs:
         ADDITIONAL_DIRECTORIES: ${{ inputs.additional_directories }}
       run: |
         echo "::group::Build settings"
-        if ! merged=$(node "$GITHUB_ACTION_PATH/script/build-settings.ts"); then
+        # The script writes the merged settings to a file and prints its path,
+        # because the runner expands `with:` into the log
+        # and the settings may hold secrets.
+        if ! path=$(node "$GITHUB_ACTION_PATH/script/build-settings.ts"); then
           echo "::error::Failed to build Claude Code settings. See the log above."
           exit 1
         fi
-        echo "json=$merged" >> "$GITHUB_OUTPUT"
+        echo "path=$path" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
 
     - name: Write user request for slash command support
@@ -630,7 +633,7 @@ runs:
         include_comments_by_actor: ${{ inputs.include_comments_by_actor }}
         exclude_comments_by_actor: ${{ inputs.exclude_comments_by_actor }}
         additional_permissions: ${{ inputs.additional_permissions }}
-        settings: ${{ steps.build-settings.outputs.json }}
+        settings: ${{ steps.build-settings.outputs.path }}
         include_fix_links: ${{ inputs.include_fix_links == 'true' && 'true' || 'false' }}
         display_report: ${{ steps.resolve-display-report.outputs.enabled }}
         # Enable full output when explicitly requested,

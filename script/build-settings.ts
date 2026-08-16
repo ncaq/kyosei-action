@@ -11,8 +11,9 @@
 //
 // Node.jsは型注釈を剥がして`.ts`を直接実行出来るので、ビルド成果物は持ちません。
 
-import { readFile, stat } from "node:fs/promises";
-import { isAbsolute } from "node:path";
+import { mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { isAbsolute, join } from "node:path";
 import process from "node:process";
 
 /** Claude Codeの設定。中身の細かい構造には関心がないので浅く扱います。 */
@@ -181,6 +182,25 @@ export async function buildSettings(environment: Environment): Promise<Settings>
   return merged;
 }
 
+/**
+ * マージした設定をファイルに書き出してそのパスを返します。
+ *
+ * claude-code-actionの`settings`入力はJSON文字列でもファイルのパスでも受け付けますが、
+ * GitHub Actionsはactionステップの`with:`を展開してログに出すため、
+ * JSONをそのまま渡すとマージ結果の全体がログに残ります。
+ * パスを渡せば内容は残りません。
+ * `$GITHUB_OUTPUT`のサイズ制限も避けられます。
+ *
+ * `mkdtemp`が作るディレクトリは`0700`なので、その中に`0600`で書きます。
+ */
+async function writeSettings(environment: Environment, settings: Settings): Promise<string> {
+  const parent = environment.RUNNER_TEMP || tmpdir();
+  const directory = await mkdtemp(join(parent, "kyosei-settings-"));
+  const path = join(directory, "settings.json");
+  await writeFile(path, `${JSON.stringify(settings)}\n`, { mode: 0o600 });
+  return path;
+}
+
 async function main(): Promise<void> {
   const environment: Environment = {
     SETTINGS: process.env["SETTINGS"],
@@ -205,7 +225,7 @@ async function main(): Promise<void> {
   if (environment.RUNNER_DEBUG === "1") {
     process.stderr.write(`Settings: ${JSON.stringify(merged)}\n`);
   }
-  process.stdout.write(`${JSON.stringify(merged)}\n`);
+  process.stdout.write(`${await writeSettings(environment, merged)}\n`);
 }
 
 if (process.argv[1] === import.meta.filename) {
