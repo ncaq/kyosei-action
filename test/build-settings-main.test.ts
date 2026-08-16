@@ -9,7 +9,9 @@ import { promisify } from "node:util";
 
 const run = promisify(execFile);
 
-const entry = new URL("../script/build-settings-main.ts", import.meta.url).pathname;
+// `new URL(...).pathname`は`file:`URLのパーセントエンコードを解かないので、
+// リポジトリのパスに空白や非ASCII文字があると壊れます。
+const entry = join(import.meta.dirname, "../script/build-settings-main.ts");
 
 /** 実在するディレクトリを1つ用意して、テストの終了時に消します。 */
 async function makeDirectory(t: TestContext): Promise<string> {
