@@ -11,7 +11,8 @@
 //
 // Node.jsは型注釈を剥がして`.ts`を直接実行出来るので、ビルド成果物は持ちません。
 
-import { readFile, stat } from "node:fs/promises";
+import { constants } from "node:fs";
+import { access, readFile, stat } from "node:fs/promises";
 import { isAbsolute } from "node:path";
 
 /** Claude Codeの設定。中身の細かい構造には関心がないので浅く扱います。 */
@@ -42,9 +43,19 @@ function stripTrailingSlash(path: string): string {
   return path.endsWith("/") ? path.slice(0, -1) : path;
 }
 
-async function isDirectory(path: string): Promise<boolean> {
+/**
+ * 書き込めるディレクトリかどうか。
+ *
+ * kyoseiスキルもClaude Codeもここにファイルを作るので、
+ * 読めるだけのディレクトリを許可しても意味がありません。
+ */
+async function isWritableDirectory(path: string): Promise<boolean> {
   try {
-    return (await stat(path)).isDirectory();
+    if (!(await stat(path)).isDirectory()) {
+      return false;
+    }
+    await access(path, constants.W_OK);
+    return true;
   } catch {
     return false;
   }
@@ -53,20 +64,23 @@ async function isDirectory(path: string): Promise<boolean> {
 /**
  * 組み込みで許可するディレクトリ。
  *
- * kyoseiスキルが作業ディレクトリを解決する順に並べ、実在するものだけを採用します。
+ * kyoseiスキルが作業ディレクトリを解決する順に並べ、書き込めるものだけを採用します。
+ * `TMPDIR`は空文字で存在することも珍しくないので、未設定と同じく`/tmp`に落とします。
  */
 async function builtInDirectories(environment: Environment): Promise<string[]> {
   const candidates = [
     environment.RUNNER_TEMP,
     environment.XDG_RUNTIME_DIR,
-    environment.TMPDIR ?? "/tmp",
+    environment.TMPDIR || "/tmp",
   ]
     .filter((candidate) => candidate !== undefined)
     .filter((candidate) => candidate !== "");
-  const existing = await Promise.all(
-    candidates.map(async (candidate) => ((await isDirectory(candidate)) ? candidate : undefined)),
+  const writable = await Promise.all(
+    candidates.map(async (candidate) =>
+      (await isWritableDirectory(candidate)) ? candidate : undefined,
+    ),
   );
-  return existing.filter((candidate) => candidate !== undefined).map(stripTrailingSlash);
+  return writable.filter((candidate) => candidate !== undefined).map(stripTrailingSlash);
 }
 
 /**
