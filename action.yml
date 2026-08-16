@@ -218,9 +218,9 @@ inputs:
       The kyosei skill writes review information files under those directories,
       and Claude Code puts its own scratch files there,
       so tools would otherwise be denied for being outside the workspace.
-      The list is passed through the `settings` input
+      The action merges this list into the settings it passes to claude-code-action
       as `permissions.additionalDirectories`,
-      merged with whatever the `settings` input already contains.
+      together with whatever the `settings` input already contains.
     required: false
     default: ""
   claude_args:
