@@ -50,6 +50,13 @@ describe("build-settings-main", () => {
     });
   });
 
+  it("RUNNER_TEMPが未設定なら一時ディレクトリに書き出します", async (t) => {
+    const temporary = await makeDirectory(t);
+    // `os.tmpdir()`は`TMPDIR`を見るので、それを一時ディレクトリの代わりにします。
+    const { stdout } = await runEntry({ TMPDIR: temporary });
+    assert.ok(stdout.trimEnd().startsWith(temporary), `path=${stdout}`);
+  });
+
   it("書き出したファイルを所有者だけが読めるようにします", async (t) => {
     const runnerTemp = await makeDirectory(t);
     const { stdout } = await runEntry({ RUNNER_TEMP: runnerTemp, TMPDIR: runnerTemp });

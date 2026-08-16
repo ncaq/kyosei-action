@@ -231,6 +231,31 @@ describe("buildSettings", () => {
     });
   });
 
+  it("additional_directoriesの複数行を行ごとに解釈します", async (t) => {
+    const temporary = await makeDirectory(t);
+    const first = await makeDirectory(t);
+    const second = await makeDirectory(t);
+    const settings = await buildSettings({
+      TMPDIR: temporary,
+      ADDITIONAL_DIRECTORIES: `${first}\n\n  ${second}  \n`,
+    });
+    assert.deepEqual(settings, {
+      permissions: { additionalDirectories: [temporary, first, second] },
+    });
+  });
+
+  it("permissionsがオブジェクトではないsettingsを組み直します", async (t) => {
+    const temporary = await makeDirectory(t);
+    const settings = await buildSettings({
+      TMPDIR: temporary,
+      SETTINGS: JSON.stringify({ permissions: "invalid", env: { FOO: "bar" } }),
+    });
+    assert.deepEqual(settings, {
+      permissions: { additionalDirectories: [temporary] },
+      env: { FOO: "bar" },
+    });
+  });
+
   it("実在しないadditional_directoriesもそのまま許可します", async (t) => {
     // 組み込みと違って利用者が明示したものは黙って捨てません。
     // マウントされる前のディレクトリなどを先に許可しておけるようにするためです。
