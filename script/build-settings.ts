@@ -162,7 +162,9 @@ export async function buildSettings(environment: Environment): Promise<Settings>
 
   const given = await parseGivenSettings(environment);
   if (!isSettings(given)) {
-    throw new BuildSettingsError("failed to merge settings");
+    throw new BuildSettingsError(
+      `settings must be a JSON object, but got: ${JSON.stringify(given)}`,
+    );
   }
 
   const built: Settings = {

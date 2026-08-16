@@ -74,10 +74,11 @@ inputs:
     default: ""
   settings:
     description: >-
-      Claude Code settings as a JSON string or path to a JSON file.
-      Merged with existing settings (input takes precedence)
-      and with the `permissions.additionalDirectories` built from
+      Claude Code settings as a JSON object, or a path to a file containing one.
+      The job fails when it is neither, because the value is parsed here
+      to merge it with the `permissions.additionalDirectories` built from
       the `additional_directories` input.
+      Also merged with existing settings (input takes precedence).
       Can configure hooks, env, MCP settings, etc.
     required: false
     default: ""

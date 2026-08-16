@@ -293,7 +293,7 @@ Only effective with OIDC token exchange (ignored when `custom_github_token` is s
 
 Default: `""`
 
-Claude Code settings as a JSON string or path to a JSON file.
+Claude Code settings as a JSON object, or a path to a file containing one.
 Merged with existing settings (input takes precedence).
 Can configure hooks, env, MCP settings, etc.
 
@@ -301,6 +301,10 @@ The `permissions.additionalDirectories` built from the `additional_directories` 
 is merged into this as well.
 Directory lists from both sides are concatenated rather than replaced,
 so allowing extra directories here does not drop the built-in ones.
+
+Because the action parses this input to perform that merge,
+the job fails when the value is neither a JSON object
+nor a path to a file containing one.
 
 #### Claude Code configuration
 
