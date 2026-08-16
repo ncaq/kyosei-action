@@ -366,6 +366,13 @@ which holds `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`
 and the GitHub App token,
 and `WebFetch` and the MCP servers give it ways to send them elsewhere.
 
+The reach is not limited to the review either.
+`$RUNNER_TEMP` is allowed as a working directory,
+and on GitHub hosted runners it also holds `_runner_file_commands`,
+where the files behind `GITHUB_ENV`, `GITHUB_PATH` and `GITHUB_OUTPUT` live.
+Appending to those injects environment variables or PATH entries
+into the later steps of the same job.
+
 This action feeds Claude text that the author of a pull request controls,
 such as the diff, the title and the comments,
 so a successful prompt injection reaches all of the above.
