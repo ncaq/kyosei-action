@@ -128,19 +128,6 @@ async function parseGivenSettings(environment: Environment): Promise<unknown> {
   }
 }
 
-/** オブジェクトは再帰的にマージし、それ以外は後勝ちにします。 */
-function mergeDeep(base: Settings, override: Settings): Settings {
-  const merged: Settings = { ...base };
-  for (const [key, overrideValue] of Object.entries(override)) {
-    const baseValue = merged[key];
-    merged[key] =
-      isSettings(baseValue) && isSettings(overrideValue)
-        ? mergeDeep(baseValue, overrideValue)
-        : overrideValue;
-  }
-  return merged;
-}
-
 /** 利用者が`settings`で指定したディレクトリ。 */
 function givenDirectories(given: Settings): string[] {
   const permissions = given["permissions"];
@@ -167,12 +154,11 @@ export async function buildSettings(environment: Environment): Promise<Settings>
     );
   }
 
-  const built: Settings = {
-    permissions: { additionalDirectories: deduplicate(directories) },
-  };
-  const merged = mergeDeep(built, given);
-  // マージでは配列は後勝ちになるので、ディレクトリの一覧だけは明示的に連結します。
-  const permissions = merged["permissions"];
+  // 組み込みで足すのは`permissions.additionalDirectories`だけなので、
+  // 利用者の設定をそのまま土台にして`permissions`だけを差し替えます。
+  // ディレクトリの一覧は置換ではなく連結します。
+  const merged: Settings = { ...given };
+  const permissions = given["permissions"];
   merged["permissions"] = {
     ...(isSettings(permissions) ? permissions : {}),
     additionalDirectories: deduplicate([...directories, ...givenDirectories(given)]),
