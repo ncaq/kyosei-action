@@ -78,7 +78,7 @@ on:
       settings:
         description: >-
           Claude Code settings as a JSON object, or a path to a file containing one.
-          The job fails when it is neither, because the value is parsed
+          The job fails when it is neither, because the value is parsed here
           to merge it with the `permissions.additionalDirectories` built from
           the `additional_directories` input.
           Also merged with existing settings (input takes precedence).
@@ -107,7 +107,7 @@ on:
         default: "low"
       allowed_tools:
         description: >-
-          Allowed tools for Claude Code (newline-separated, replaces default set).
+          Allowed tools for Claude Code (newline-separated, replaces the default set below).
           The default allows `Bash` without any command restriction and `Write`,
           because the kyosei plugin runs its own bundled binaries
           whose names and paths differ per release,
@@ -123,14 +123,10 @@ on:
           replace this default with a stricter policy
           when you review untrusted input such as fork pull requests.
           See the README for details.
-          Mutations such as posting reviews are performed by the kyosei skill
-          via its Node.js implementation rather than by Claude directly.
-          GitHub MCP tools must be listed individually
-          with the full `mcp__github__<tool_name>` form
-          (note the trailing `__` separator after "github").
-          The bare `mcp__github` prefix does NOT match
-          claude-code-action's `startsWith("mcp__github__")`
-          check that activates the Docker-based GitHub MCP server.
+          List each GitHub MCP tool individually as `mcp__github__<tool_name>`,
+          because claude-code-action only starts the GitHub MCP server
+          when a tool name begins with `mcp__github__`
+          (the bare `mcp__github` prefix does not work).
           The default also allows what the bundled plugins need:
           the `Agent` tool and the MCP servers used by the research survey agent
           (`mcp__backlog__*`, `mcp__plugin_nix-tasuke_nixos`, `mcp__plugin_research_*`).
@@ -230,11 +226,14 @@ on:
           The kyosei skill writes review information files under those directories,
           and Claude Code puts its own scratch files there,
           so tools would otherwise be denied for being outside the workspace.
+          The list is passed through the `settings` input
+          as `permissions.additionalDirectories`,
+          merged with whatever the `settings` input already contains.
         type: string
         required: false
         default: ""
       claude_args:
-        description: >
+        description: >-
           Additional arguments to pass to Claude CLI
           (appended after --model and --allowed-tools)
         type: string
@@ -286,7 +285,6 @@ on:
       self_hosted_packages:
         description: >-
           Newline-separated list of packages to install via apt-get on self-hosted runners.
-          Passed through to kyosei-action.
           Installation runs only when the runner is self-hosted and apt-get is available.
           Set to an empty string to skip installation entirely.
         type: string

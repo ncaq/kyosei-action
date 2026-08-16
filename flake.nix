@@ -164,23 +164,37 @@
                       errors=$((errors + 1))
                     }
 
-                    # `allowed_tools`のデフォルトの一覧。
-                    action_tools=$(yq '.inputs.allowed_tools.default' "$action")
-                    workflow_tools=$(yq '.on.workflow_call.inputs.allowed_tools.default' "$workflow")
-                    if [ "$action_tools" != "$workflow_tools" ]; then
-                      report "allowed_tools default differs." "$workflow_tools" "$action_tools"
-                    fi
-
-                    # 入力名の集合。
+                    # 入力の名前とデフォルトと説明。
                     # 認証情報はワークフロー側ではsecretsで受け取り、
                     # `runs-on`などはワークフロー固有なので比較から除きます。
-                    workflow_only='["runs-on", "timeout-minutes", "fetch-depth"]'
-                    secrets='["claude_code_oauth_token", "anthropic_api_key", "custom_github_token"]'
-                    action_inputs=$(yq ".inputs | keys - $secrets | .[]" "$action")
-                    workflow_inputs=$(yq \
-                      ".on.workflow_call.inputs | keys - $workflow_only | .[]" "$workflow")
+                    # ワークフローの`type: boolean`はYAMLの真偽値になるので、
+                    # actionの文字列と揃うように`tostring`で正規化します。
+                    workflow_only='del(.["runs-on"], .["timeout-minutes"], .["fetch-depth"])'
+                    secrets='del(.claude_code_oauth_token,
+                                 .anthropic_api_key,
+                                 .custom_github_token)'
+                    normalize='to_entries
+                      | map({"key": .key,
+                             "value": {"default": (.value.default | tostring),
+                                       "description": (.value.description // "")}})
+                      | sort_by(.key) | from_entries'
+                    # コメントは両ファイルで異なるので、JSONにして落とします。
+                    action_inputs=$(yq -o=json \
+                      ".inputs | $secrets | $normalize" "$action")
+                    workflow_inputs=$(yq -o=json \
+                      ".on.workflow_call.inputs | $workflow_only | $normalize" "$workflow")
                     if [ "$action_inputs" != "$workflow_inputs" ]; then
-                      report "input names differ." "$workflow_inputs" "$action_inputs"
+                      report "inputs differ." "$workflow_inputs" "$action_inputs"
+                    fi
+
+                    # 再利用ワークフローは入力を宣言するだけでは足りず、
+                    # kyoseiステップの`with:`で渡さないと黙って無視されます。
+                    # 入力名の集合と`with:`のキーの集合が一致することを検査します。
+                    action_names=$(yq '.inputs | keys | .[]' "$action")
+                    passed=$(yq '(.jobs.*.steps[]
+                      | select(.uses | test("kyosei-action")) | .with) | keys | .[]' "$workflow")
+                    if [ "$action_names" != "$passed" ]; then
+                      report "inputs passed with the kyosei step differ." "$passed" "$action_names"
                     fi
 
                     if [ "$errors" -gt 0 ]; then
