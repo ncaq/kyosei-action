@@ -336,17 +336,19 @@ Allowed tools for Claude Code (newline-separated, replaces default set).
 Mutations such as posting reviews are performed by the kyosei skill
 via its Node.js implementation rather than by Claude directly.
 
-###### Bash
+###### Bash and Write
 
-The default allows `Bash` without any command restriction.
+The default allows `Bash` without any command restriction, and `Write`.
 
 The kyosei plugin runs its own bundled binaries whose names and paths differ per release,
 so an allowlist of individual commands cannot cover them.
+Reviewers also write intermediate results to scratch files.
 `node` alone already permits arbitrary code execution,
 so restricting the rest gains little.
 
 Reviewer subagents restrict their own tools in agent frontmatter,
-and this action normally runs on an isolated GitHub Runner.
+and this action normally runs on an isolated GitHub Runner
+whose working tree is discarded after the job.
 
 Replace this default if you need a stricter policy.
 
@@ -501,7 +503,6 @@ To add tools without replacing the defaults, use `additional_allowed_tools`:
     claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
     additional_allowed_tools: |
       Edit
-      Write
 ```
 
 ### Outputs

@@ -99,12 +99,14 @@ inputs:
   allowed_tools:
     description: >-
       Allowed tools for Claude Code (newline-separated, replaces the default set below).
-      The default allows `Bash` without any command restriction,
+      The default allows `Bash` without any command restriction and `Write`,
       because the kyosei plugin runs its own bundled binaries
       whose names and paths differ per release,
-      and `node` alone already permits arbitrary code execution.
+      reviewers write intermediate results to scratch files,
+      and `node` alone already permits arbitrary code execution anyway.
       Reviewer subagents restrict their own tools in agent frontmatter,
-      and this action normally runs on an isolated GitHub Runner.
+      and this action normally runs on an isolated GitHub Runner
+      whose working tree is discarded after the job.
       Replace this default if you need a stricter policy.
       List each GitHub MCP tool individually as `mcp__github__<tool_name>`,
       because claude-code-action only starts the GitHub MCP server
@@ -128,6 +130,7 @@ inputs:
       TodoWrite
       WebFetch
       WebSearch
+      Write
       mcp__backlog__get_issue
       mcp__backlog__get_issue_comments
       mcp__backlog__get_issues
