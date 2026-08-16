@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import process from "node:process";
 import { describe, it, type TestContext } from "node:test";
 import { buildSettings } from "../script/build-settings.ts";
 
@@ -32,6 +33,37 @@ describe("buildSettings", () => {
     });
     assert.deepEqual(settings, {
       permissions: { additionalDirectories: [temporary] },
+    });
+  });
+
+  it("書き込めないディレクトリを除きます", async (t) => {
+    if (process.getuid?.() === 0) {
+      // rootはパーミッションに関わらず書き込めるので確かめようがありません。
+      t.skip("running as root");
+      return;
+    }
+    const temporary = await makeDirectory(t);
+    const readOnly = join(temporary, "read-only");
+    await mkdir(readOnly, { mode: 0o500 });
+    const settings = await buildSettings({ RUNNER_TEMP: readOnly, TMPDIR: temporary });
+    assert.deepEqual(settings, {
+      permissions: { additionalDirectories: [temporary] },
+    });
+  });
+
+  it("TMPDIRが未設定なら/tmpを使います", async (t) => {
+    const runnerTemp = await makeDirectory(t);
+    const settings = await buildSettings({ RUNNER_TEMP: runnerTemp });
+    assert.deepEqual(settings, {
+      permissions: { additionalDirectories: [runnerTemp, "/tmp"] },
+    });
+  });
+
+  it("TMPDIRが空文字でも/tmpを使います", async (t) => {
+    const runnerTemp = await makeDirectory(t);
+    const settings = await buildSettings({ RUNNER_TEMP: runnerTemp, TMPDIR: "" });
+    assert.deepEqual(settings, {
+      permissions: { additionalDirectories: [runnerTemp, "/tmp"] },
     });
   });
 
