@@ -222,7 +222,7 @@ on:
           (newline-separated absolute paths).
           These are appended to the built-in ones,
           which are `$RUNNER_TEMP`, `$XDG_RUNTIME_DIR` and `$TMPDIR` (or `/tmp`)
-          when they exist.
+          when they exist and are writable.
           The kyosei skill writes review information files under those directories,
           and Claude Code puts its own scratch files there,
           so tools would otherwise be denied for being outside the workspace.
