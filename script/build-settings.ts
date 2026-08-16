@@ -11,10 +11,8 @@
 //
 // Node.jsは型注釈を剥がして`.ts`を直接実行出来るので、ビルド成果物は持ちません。
 
-import { mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { isAbsolute, join } from "node:path";
-import process from "node:process";
+import { readFile, stat } from "node:fs/promises";
+import { isAbsolute } from "node:path";
 
 /** Claude Codeの設定。中身の細かい構造には関心がないので浅く扱います。 */
 export type Settings = Record<string, unknown>;
@@ -35,7 +33,7 @@ export class BuildSettingsError extends Error {
 }
 
 /** `JSON.parse`の結果など、型の分からない値がオブジェクトであることを判定します。 */
-function isSettings(value: unknown): value is Settings {
+export function isSettings(value: unknown): value is Settings {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
@@ -180,54 +178,4 @@ export async function buildSettings(environment: Environment): Promise<Settings>
     additionalDirectories: deduplicate([...directories, ...givenDirectories(given)]),
   };
   return merged;
-}
-
-/**
- * マージした設定をファイルに書き出してそのパスを返します。
- *
- * claude-code-actionの`settings`入力はJSON文字列でもファイルのパスでも受け付けますが、
- * GitHub Actionsはactionステップの`with:`を展開してログに出すため、
- * JSONをそのまま渡すとマージ結果の全体がログに残ります。
- * パスを渡せば内容は残りません。
- * `$GITHUB_OUTPUT`のサイズ制限も避けられます。
- *
- * `mkdtemp`が作るディレクトリは`0700`なので、その中に`0600`で書きます。
- */
-async function writeSettings(environment: Environment, settings: Settings): Promise<string> {
-  const parent = environment.RUNNER_TEMP || tmpdir();
-  const directory = await mkdtemp(join(parent, "kyosei-settings-"));
-  const path = join(directory, "settings.json");
-  await writeFile(path, `${JSON.stringify(settings)}\n`, { mode: 0o600 });
-  return path;
-}
-
-async function main(): Promise<void> {
-  const environment: Environment = {
-    SETTINGS: process.env["SETTINGS"],
-    ADDITIONAL_DIRECTORIES: process.env["ADDITIONAL_DIRECTORIES"],
-    RUNNER_TEMP: process.env["RUNNER_TEMP"],
-    XDG_RUNTIME_DIR: process.env["XDG_RUNTIME_DIR"],
-    TMPDIR: process.env["TMPDIR"],
-    RUNNER_DEBUG: process.env["RUNNER_DEBUG"],
-  };
-  const merged = await buildSettings(environment);
-  // `settings`はhooksや`env`を設定できるので、
-  // マージ結果全体はAPIキーなどを含み得ます。
-  // 特にファイル経由で読んだ内容はGitHub Actionsのシークレットマスクの対象にならず、
-  // 公開リポジトリでは誰でも読めるログに平文で残ります。
-  // そのため通常は許可したディレクトリだけを出して、
-  // 全体はデバッグログが有効な時にだけ出します。
-  //
-  // 標準出力は呼び出し元がそのまま`$GITHUB_OUTPUT`へ書くので、ログは標準エラーに出します。
-  const permissions = merged["permissions"];
-  const directories = isSettings(permissions) ? permissions["additionalDirectories"] : undefined;
-  process.stderr.write(`Additional directories: ${JSON.stringify(directories)}\n`);
-  if (environment.RUNNER_DEBUG === "1") {
-    process.stderr.write(`Settings: ${JSON.stringify(merged)}\n`);
-  }
-  process.stdout.write(`${await writeSettings(environment, merged)}\n`);
-}
-
-if (process.argv[1] === import.meta.filename) {
-  await main();
 }

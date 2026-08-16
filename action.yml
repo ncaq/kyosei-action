@@ -480,8 +480,12 @@ runs:
         # The script writes the merged settings to a file and prints its path,
         # because the runner expands `with:` into the log
         # and the settings may hold secrets.
-        if ! path=$(node "$GITHUB_ACTION_PATH/script/build-settings.ts"); then
+        if ! path=$(node "$GITHUB_ACTION_PATH/script/build-settings-main.ts"); then
           echo "::error::Failed to build Claude Code settings. See the log above."
+          exit 1
+        fi
+        if [ -z "$path" ]; then
+          echo "::error::The settings builder produced no output."
           exit 1
         fi
         echo "path=$path" >> "$GITHUB_OUTPUT"
