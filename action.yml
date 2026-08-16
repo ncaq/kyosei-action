@@ -75,7 +75,9 @@ inputs:
   settings:
     description: >-
       Claude Code settings as a JSON string or path to a JSON file.
-      Merged with existing settings (input takes precedence).
+      Merged with existing settings (input takes precedence)
+      and with the `permissions.additionalDirectories` built from
+      the `additional_directories` input.
       Can configure hooks, env, MCP settings, etc.
     required: false
     default: ""
@@ -197,6 +199,21 @@ inputs:
       mcp__plugin_research_microsoft-learn
   additional_allowed_tools:
     description: Additional allowed tools to append to allowed_tools (newline-separated)
+    required: false
+    default: ""
+  additional_directories:
+    description: >-
+      Extra directories Claude may read and write outside the workspace
+      (newline-separated absolute paths).
+      These are appended to the built-in ones,
+      which are `$RUNNER_TEMP`, `$XDG_RUNTIME_DIR` and `$TMPDIR` (or `/tmp`)
+      when they exist.
+      The kyosei skill writes review information files under those directories,
+      and Claude Code puts its own scratch files there,
+      so tools would otherwise be denied for being outside the workspace.
+      The list is passed through the `settings` input
+      as `permissions.additionalDirectories`,
+      merged with whatever the `settings` input already contains.
     required: false
     default: ""
   claude_args:
@@ -442,6 +459,64 @@ runs:
         echo "joined=$joined" >> "$GITHUB_OUTPUT"
         echo "::endgroup::"
 
+    # Claude Codeはワークスペースの外にあるファイルへのツールの利用を拒否するが、
+    # kyoseiスキルはレビュー情報のファイルを`$RUNNER_TEMP`配下に書き出し、
+    # Claude Code自身もスクラッチファイルを一時ディレクトリに置くため、
+    # それらを`permissions.additionalDirectories`で許可しておく必要がある。
+    #
+    # claude-code-actionの`settings`入力は`~/.claude/settings.json`に書き込まれ、
+    # `settingSources`に`user`が含まれるのでそのまま設定として読まれる。
+    # 利用者が`settings`を渡している場合は上書きしてしまわないようにここでマージする。
+    - name: Build settings
+      id: build-settings
+      shell: bash
+      env:
+        SETTINGS: ${{ inputs.settings }}
+        ADDITIONAL_DIRECTORIES: ${{ inputs.additional_directories }}
+      run: |
+        echo "::group::Build settings"
+        directories=()
+        # Built-in directories, in the same order the kyosei skill resolves them.
+        for candidate in "$RUNNER_TEMP" "$XDG_RUNTIME_DIR" "${TMPDIR:-/tmp}"; do
+          if [[ -n "$candidate" && -d "$candidate" ]]; then
+            directories+=("${candidate%/}")
+          fi
+        done
+        while IFS= read -r directory; do
+          directories+=("${directory%/}")
+        done < <(echo "$ADDITIONAL_DIRECTORIES" | sed '/^[[:space:]]*$/d')
+
+        built=$(jq --null-input --compact-output --args \
+          '{permissions: {additionalDirectories: ($ARGS.positional | unique)}}' \
+          "${directories[@]}")
+
+        # The settings input is either a JSON string or a path to a JSON file,
+        # the same rule claude-code-action itself applies.
+        if [[ -n "${SETTINGS//[[:space:]]/}" ]]; then
+          if given=$(jq --compact-output . <<< "$SETTINGS" 2> /dev/null); then
+            echo "Merging settings given as JSON."
+          elif given=$(jq --compact-output . "$SETTINGS"); then
+            echo "Merging settings read from $SETTINGS."
+          else
+            echo "::error::settings is neither valid JSON nor a readable JSON file."
+            exit 1
+          fi
+        else
+          given='{}'
+        fi
+
+        # `*` merges objects recursively but replaces arrays,
+        # so the directory lists are concatenated explicitly.
+        merged=$(jq --null-input --compact-output \
+          --argjson built "$built" --argjson given "$given" \
+          '($built * $given)
+           | .permissions.additionalDirectories =
+             (($built.permissions.additionalDirectories // [])
+              + ($given.permissions.additionalDirectories // []) | unique)')
+        echo "Settings: $merged"
+        echo "json=$merged" >> "$GITHUB_OUTPUT"
+        echo "::endgroup::"
+
     - name: Write user request for slash command support
       shell: bash
       env:
@@ -588,7 +663,7 @@ runs:
         include_comments_by_actor: ${{ inputs.include_comments_by_actor }}
         exclude_comments_by_actor: ${{ inputs.exclude_comments_by_actor }}
         additional_permissions: ${{ inputs.additional_permissions }}
-        settings: ${{ inputs.settings }}
+        settings: ${{ steps.build-settings.outputs.json }}
         include_fix_links: ${{ inputs.include_fix_links == 'true' && 'true' || 'false' }}
         display_report: ${{ steps.resolve-display-report.outputs.enabled }}
         # Enable full output when explicitly requested,

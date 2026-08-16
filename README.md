@@ -297,6 +297,11 @@ Claude Code settings as a JSON string or path to a JSON file.
 Merged with existing settings (input takes precedence).
 Can configure hooks, env, MCP settings, etc.
 
+The `permissions.additionalDirectories` built from the `additional_directories` input
+is merged into this as well.
+Directory lists from both sides are concatenated rather than replaced,
+so allowing extra directories here does not drop the built-in ones.
+
 #### Claude Code configuration
 
 ##### `model`
@@ -383,6 +388,23 @@ so it only works if you configure the Backlog MCP server yourself
 Default: `""`
 
 Additional allowed tools to append to allowed_tools (newline-separated).
+
+##### `additional_directories`
+
+Default: `""`
+
+Extra directories Claude may read and write outside the workspace
+(newline-separated absolute paths).
+
+Claude Code refuses file tools outside the working directory,
+but the kyosei skill writes review information files under a private work directory,
+and Claude Code puts its own scratch files under the temporary directory.
+The built-in list therefore covers `$RUNNER_TEMP`, `$XDG_RUNTIME_DIR`
+and `$TMPDIR` (or `/tmp`), whichever of them exist,
+matching the order the kyosei skill resolves its work directory in.
+
+This input is appended to that built-in list,
+so it only adds directories and never removes them.
 
 ##### `claude_args`
 
