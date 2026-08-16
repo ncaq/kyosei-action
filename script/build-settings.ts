@@ -113,19 +113,35 @@ async function parseGivenSettings(environment: Environment): Promise<unknown> {
   } catch {
     // JSONとして読めなければファイルパスとして扱います。
   }
+  // 失敗の理由にはエラーの内容を混ぜません。
+  // `raw`はJSONとして読めなかった`settings`そのものなので、
+  // `readFile`のエラーにはそれが全文含まれますし、
+  // `JSON.parse`のエラーには読んだファイルの抜粋が含まれます。
+  // このステップの標準エラーはジョブログに出ますが、
+  // ファイル経由で与えられた`settings`はシークレットマスクの対象になりません。
   let content;
   try {
     content = await readFile(raw, "utf8");
   } catch (error) {
     throw new BuildSettingsError(
-      `settings is neither valid JSON nor a readable file: ${String(error)}`,
+      `settings is neither valid JSON nor a readable file (${errorCode(error)})`,
     );
   }
   try {
     return JSON.parse(content);
-  } catch (error) {
-    throw new BuildSettingsError(`settings file does not contain valid JSON: ${String(error)}`);
+  } catch {
+    throw new BuildSettingsError(
+      `settings file does not contain valid JSON (${content.length} bytes read)`,
+    );
   }
+}
+
+/** 内容を伴わない失敗の理由。`ENOENT`などのコードが取れなければ種別だけを返します。 */
+function errorCode(error: unknown): string {
+  if (error instanceof Error && "code" in error && typeof error.code === "string") {
+    return error.code;
+  }
+  return "unknown error";
 }
 
 /** 利用者が`settings`で指定したディレクトリ。 */
