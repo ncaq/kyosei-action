@@ -257,6 +257,7 @@ inputs:
     required: false
     default: |-
       kyosei@konoka
+      nix-tasuke@konoka
       research@konoka
 
   # Self-hosted runner support

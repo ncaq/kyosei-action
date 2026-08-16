@@ -460,9 +460,13 @@ Git URL of the plugin marketplace.
 
 ##### `plugin_name`
 
-Default: `kyosei@konoka` and `research@konoka` (newline-separated)
+Default: `kyosei@konoka`, `nix-tasuke@konoka` and `research@konoka` (newline-separated)
 
 Plugin identifier within the marketplace.
+
+nix-tasuke is bundled because the default `allowed_tools` allows
+its `mcp__plugin_nix-tasuke_nixos` server,
+which the reviewers use to look up nixpkgs packages and NixOS options.
 
 #### Self-hosted runner support
 
