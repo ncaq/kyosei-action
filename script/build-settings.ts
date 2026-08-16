@@ -150,6 +150,14 @@ async function parseGivenSettings(environment: Environment): Promise<unknown> {
   }
 }
 
+/** 中身を伴わないJSONの値の種別。 */
+function jsonKind(value: unknown): string {
+  if (value === null) {
+    return "null";
+  }
+  return Array.isArray(value) ? "array" : typeof value;
+}
+
 /** 内容を伴わない失敗の理由。`ENOENT`などのコードが取れなければ種別だけを返します。 */
 function errorCode(error: unknown): string {
   if (error instanceof Error && "code" in error && typeof error.code === "string") {
@@ -179,9 +187,8 @@ export async function buildSettings(environment: Environment): Promise<Settings>
 
   const given = await parseGivenSettings(environment);
   if (!isSettings(given)) {
-    throw new BuildSettingsError(
-      `settings must be a JSON object, but got: ${JSON.stringify(given)}`,
-    );
+    // `parseGivenSettings`の失敗と同じく、値そのものはログに出しません。
+    throw new BuildSettingsError(`settings must be a JSON object, but got: ${jsonKind(given)}`);
   }
 
   // 組み込みで足すのは`permissions.additionalDirectories`だけなので、
