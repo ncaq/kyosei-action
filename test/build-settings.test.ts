@@ -135,6 +135,18 @@ describe("buildSettings", () => {
     }
   });
 
+  it("オブジェクトではないsettingsのメッセージに渡された値を含めません", async (t) => {
+    const temporary = await makeDirectory(t);
+    await assert.rejects(
+      buildSettings({ TMPDIR: temporary, SETTINGS: JSON.stringify(["s3cret"]) }),
+      (error: Error) => {
+        assert.match(error.message, /settings must be a JSON object/);
+        assert.doesNotMatch(error.message, /s3cret/);
+        return true;
+      },
+    );
+  });
+
   it("additional_directoriesの前後の空白を落とします", async (t) => {
     const temporary = await makeDirectory(t);
     const additional = await makeDirectory(t);
