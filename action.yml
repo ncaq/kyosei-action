@@ -108,9 +108,15 @@ inputs:
       reviewers write intermediate results to scratch files,
       and `node` alone already permits arbitrary code execution anyway.
       Reviewer subagents restrict their own tools in agent frontmatter,
-      and this action normally runs on an isolated GitHub Runner
-      whose working tree is discarded after the job.
-      Replace this default if you need a stricter policy.
+      but that is not a boundary because general-purpose subagents
+      inherit the tools of the session that started them.
+      The disposable runner only protects the working tree:
+      the session can read the credentials in the process environment
+      and has ways to send them elsewhere.
+      Since the pull request text it reads is attacker controlled,
+      replace this default with a stricter policy
+      when you review untrusted input such as fork pull requests.
+      See the README for details.
       List each GitHub MCP tool individually as `mcp__github__<tool_name>`,
       because claude-code-action only starts the GitHub MCP server
       when a tool name begins with `mcp__github__`

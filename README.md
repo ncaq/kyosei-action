@@ -355,11 +355,22 @@ Reviewers also write intermediate results to scratch files.
 `node` alone already permits arbitrary code execution,
 so restricting the rest gains little.
 
-Reviewer subagents restrict their own tools in agent frontmatter,
-and this action normally runs on an isolated GitHub Runner
-whose working tree is discarded after the job.
+Reviewer subagents restrict their own tools in agent frontmatter.
+Note that this is not a boundary:
+the allowed `Agent` tool can also start general-purpose subagents,
+which inherit the same tools as the session that started them.
 
-Replace this default if you need a stricter policy.
+The runner is disposable, but that protects only the working tree.
+The session can read the process environment,
+which holds `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY`
+and the GitHub App token,
+and `WebFetch` and the MCP servers give it ways to send them elsewhere.
+
+This action feeds Claude text that the author of a pull request controls,
+such as the diff, the title and the comments,
+so a successful prompt injection reaches all of the above.
+Replace this default with a stricter policy when you review untrusted input,
+fork pull requests in particular.
 
 ###### GitHub MCP
 
