@@ -12,6 +12,7 @@
 // Node.jsは型注釈を剥がして`.ts`を直接実行出来るので、ビルド成果物は持ちません。
 
 import { readFile, stat } from "node:fs/promises";
+import { isAbsolute } from "node:path";
 import process from "node:process";
 
 /** Claude Codeの設定。中身の細かい構造には関心がないので浅く扱います。 */
@@ -68,12 +69,27 @@ async function builtInDirectories(environment: Environment): Promise<string[]> {
   return existing.filter((candidate) => candidate !== undefined).map(stripTrailingSlash);
 }
 
-/** 利用者が`additional_directories`で追加したディレクトリ。 */
+/**
+ * 利用者が`additional_directories`で追加したディレクトリ。
+ *
+ * YAMLのブロックスカラーではインデントが混入しやすいので前後の空白を落とします。
+ * 相対パスや、末尾のスラッシュを落とすと空になる`/`は、
+ * 黙って無効な設定にせずエラーにします。
+ */
 function inputDirectories(environment: Environment): string[] {
   return (environment.ADDITIONAL_DIRECTORIES ?? "")
     .split("\n")
-    .filter((line) => line.trim() !== "")
-    .map(stripTrailingSlash);
+    .map((line) => line.trim())
+    .filter((line) => line !== "")
+    .map((line) => {
+      const directory = stripTrailingSlash(line);
+      if (!isAbsolute(directory) || directory === "") {
+        throw new BuildSettingsError(
+          `additional_directories must be an absolute path: ${JSON.stringify(line)}`,
+        );
+      }
+      return directory;
+    });
 }
 
 /** 重複を除きます。 */
