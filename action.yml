@@ -502,7 +502,7 @@ runs:
     # claude-code-actionは自前でClaude Code CLIをインストールするが、
     # そのバージョンはaction側にハードコードされているため、
     # `v1.0.145`固定だとClaude Codeも`2.1.174`から上がらない。
-    # Opus 5はClaude Code`2.1.219`で追加されて`opus`エイリアスの解決先になったので、
+    # Opus 5.5はClaude Code`2.1.280`で追加されて`opus`エイリアスの解決先になったので、
     # `2.1.174`のままでは`model: opus`がOpus 4系のままになる。
     # `path_to_claude_code_executable`を渡すとclaude-code-action側のインストールは、
     # 丸ごとスキップされてここでインストールしたバイナリが使われるため、
@@ -519,12 +519,12 @@ runs:
       id: claude-code
       shell: bash
       env:
-        # Opus 5を使うには`2.1.219`以上が必要。
+        # Opus 5.5を使うには`2.1.280`以上が必要。
         # <https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md>
-        CLAUDE_CODE_VERSION: "2.1.220"
+        CLAUDE_CODE_VERSION: "2.1.283"
         # バージョンを上げる時は以下のコマンドで取り直す。
         # curl -fsSL https://downloads.claude.ai/claude-code-releases/<version>/manifest.json | sha256sum
-        CLAUDE_CODE_MANIFEST_SHA256: "40f281ff188f1cd4f39309da41a219014dad2555d96e9780c67a2138720d12ed"
+        CLAUDE_CODE_MANIFEST_SHA256: "e4dc657e4c8dbb087ce7573ac5ea5a75367b5414de1ba5c904a870a09778d2fd"
       run: |
         case "$(uname -s)" in
           Darwin) os=darwin ;;
