@@ -93,12 +93,12 @@ inputs:
       Reasoning effort level for the top-level orchestrator session
       (low, medium, high, xhigh, max).
       The kyosei skill itself only dispatches reviewer subagents and posts JSON,
-      so a lower level reduces cost and latency without affecting review quality.
+      so a lower level such as "low" reduces cost and latency without affecting review quality.
       Reviewer subagents declare their own effort in agent frontmatter,
       which overrides this session-level value per Claude Code's agent fields spec.
-      Set to an empty string to omit the flag and use the model default.
+      Leave empty (the default) to omit the flag and use the model default.
     required: false
-    default: "low"
+    default: ""
   allowed_tools:
     description: >-
       Allowed tools for Claude Code (newline-separated, replaces the default set below).

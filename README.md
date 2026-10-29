@@ -321,20 +321,20 @@ in the `Install Claude Code` step of [action.yml](./action.yml).
 
 ##### `effort`
 
-Default: `low`
+Default: empty (the `--effort` flag is omitted and the model default applies)
 
 Reasoning effort level for the top-level orchestrator session.
 Valid values: `low`, `medium`, `high`, `xhigh`, `max`.
 
 The kyosei skill itself only dispatches reviewer subagents and posts JSON,
 so it does not need deep reasoning.
-Lowering this level reduces cost and latency without affecting review quality.
+Setting a lower level such as `low` reduces cost and latency without affecting review quality.
 
 Reviewer subagents declare their own effort in agent frontmatter,
 which [overrides the session-level value](https://code.claude.com/docs/en/agents),
 so the actual reviews are unaffected by this setting.
 
-Set to an empty string to omit the flag and use the model default.
+Leave empty to omit the flag and use the model default.
 
 ##### `allowed_tools`
 
