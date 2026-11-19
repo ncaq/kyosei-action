@@ -142,7 +142,7 @@ The Reusable Workflow additionally accepts the following inputs:
 
 | Name              | Description                                              | Default        |
 | ----------------- | -------------------------------------------------------- | -------------- |
-| `runs-on`         | Runner label(s) (plain string, JSON string/array/object) | `ubuntu-24.04` |
+| `runs-on`         | Runner label(s) (plain string, JSON string/array/object) | `ubuntu-26.04` |
 | `timeout-minutes` | Job timeout in minutes                                   | `60`           |
 | `fetch-depth`     | Number of commits to fetch                               | `50`           |
 
@@ -153,11 +153,11 @@ The Reusable Workflow additionally accepts the following inputs:
 ```yaml
 # Single label (plain string)
 with:
-  runs-on: ubuntu-24.04
+  runs-on: ubuntu-26.04
 
 # Single label (JSON string — also works)
 with:
-  runs-on: '"ubuntu-24.04"'
+  runs-on: '"ubuntu-26.04"'
 
 # Multiple labels (JSON array)
 with:
@@ -189,7 +189,7 @@ permissions: {}
 
 jobs:
   review:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     # Claude GitHub App manages its own token, so only minimal permissions are needed.
     permissions:
       contents: read # Read repository contents for checkout

@@ -302,9 +302,9 @@ on:
         description: >-
           Runner label(s) for the job.
           A single label can be written as a plain string
-          (e.g. ubuntu-24.04)
+          (e.g. ubuntu-26.04)
           or a JSON string
-          (e.g. "ubuntu-24.04").
+          (e.g. "ubuntu-26.04").
           Multiple labels require a JSON array
           (e.g. ["self-hosted", "linux"]).
           An object with group/labels keys
@@ -312,7 +312,7 @@ on:
           is also accepted.
         type: string
         required: false
-        default: ubuntu-24.04
+        default: ubuntu-26.04
       timeout-minutes:
         description: Job timeout in minutes. Set as a safeguard against hangs.
         type: number
