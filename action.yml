@@ -521,10 +521,10 @@ runs:
       env:
         # Opus 5.5を使うには`2.1.280`以上が必要。
         # <https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md>
-        CLAUDE_CODE_VERSION: "2.1.283"
+        CLAUDE_CODE_VERSION: "2.1.328"
         # バージョンを上げる時は以下のコマンドで取り直す。
         # curl -fsSL https://downloads.claude.ai/claude-code-releases/<version>/manifest.json | sha256sum
-        CLAUDE_CODE_MANIFEST_SHA256: "e4dc657e4c8dbb087ce7573ac5ea5a75367b5414de1ba5c904a870a09778d2fd"
+        CLAUDE_CODE_MANIFEST_SHA256: "b94760a7ad96de4998334fd15149d6d9df5fa964c94b6990edf402f8a7562ca8"
       run: |
         case "$(uname -s)" in
           Darwin) os=darwin ;;
