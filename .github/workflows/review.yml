@@ -108,14 +108,18 @@ on:
       allowed_tools:
         description: >-
           Allowed tools for Claude Code (newline-separated, replaces the default set below).
+          The default lists only the tools that need permission.
+          Tools that run without an allow rule,
+          such as `Agent`, `Glob` and `Grep`, are omitted.
           The default allows `Bash` without any command restriction and `Write`,
           because the kyosei plugin runs its own bundled binaries
           whose names and paths differ per release,
           reviewers write intermediate results to scratch files,
           and `node` alone already permits arbitrary code execution anyway.
-          Reviewer subagents restrict their own tools in agent frontmatter,
-          but that is not a boundary because general-purpose subagents
-          inherit the tools of the session that started them.
+          Reviewer skills list their own tools in frontmatter,
+          but that grants permission rather than restricting it,
+          and the subagents they run in inherit the permission rules
+          of the session that started them.
           The disposable runner only protects the working tree:
           the session can read the credentials in the process environment
           and has ways to send them elsewhere.
@@ -123,12 +127,14 @@ on:
           replace this default with a stricter policy
           when you review untrusted input such as fork pull requests.
           See the README for details.
-          List each GitHub MCP tool individually as `mcp__github__<tool_name>`,
-          because claude-code-action only starts the GitHub MCP server
-          when a tool name begins with `mcp__github__`
-          (the bare `mcp__github` prefix does not work).
-          The default also allows what the bundled plugins need:
-          the `Agent` tool and the MCP servers used by the research survey agent
+          For every MCP server the default allows the read-only tools and nothing else.
+          The GitHub MCP tools are every read-only tool of github-mcp-server v0.17.1,
+          the version claude-code-action starts,
+          plus a few names that later versions use.
+          Keep at least one name beginning with `mcp__github__`,
+          because claude-code-action only starts the GitHub MCP server then
+          (the bare `mcp__github` does not start it).
+          The default also allows the MCP servers used by the research survey skill
           (`mcp__backlog__*`, `mcp__plugin_nix-tasuke_nixos`, `mcp__plugin_research_*`).
           The `mcp__plugin_*` servers ship with the bundled plugins and work out of the box.
           Backlog (`mcp__backlog__*`) is not bundled, so it only works
@@ -136,40 +142,69 @@ on:
         type: string
         required: false
         default: |
-          Agent
           Bash
-          Glob
-          Grep
           Read
           Skill
-          Task
-          TodoWrite
           WebFetch
           WebSearch
           Write
+          mcp__backlog__count_issues
+          mcp__backlog__count_notifications
+          mcp__backlog__get_categories
+          mcp__backlog__get_custom_fields
+          mcp__backlog__get_document
+          mcp__backlog__get_document_comments
+          mcp__backlog__get_document_tree
+          mcp__backlog__get_documents
+          mcp__backlog__get_git_repositories
+          mcp__backlog__get_git_repository
           mcp__backlog__get_issue
+          mcp__backlog__get_issue_attachment
           mcp__backlog__get_issue_comments
+          mcp__backlog__get_issue_types
           mcp__backlog__get_issues
           mcp__backlog__get_myself
           mcp__backlog__get_notifications
+          mcp__backlog__get_priorities
           mcp__backlog__get_project
           mcp__backlog__get_project_list
+          mcp__backlog__get_project_users
           mcp__backlog__get_pull_request
+          mcp__backlog__get_pull_request_comments
           mcp__backlog__get_pull_requests
+          mcp__backlog__get_pull_requests_count
+          mcp__backlog__get_related_issues
+          mcp__backlog__get_resolutions
+          mcp__backlog__get_space
+          mcp__backlog__get_space_activities
+          mcp__backlog__get_user_recent_updates
+          mcp__backlog__get_user_stars_count
+          mcp__backlog__get_users
+          mcp__backlog__get_version_milestone_list
+          mcp__backlog__get_watching_list_count
+          mcp__backlog__get_watching_list_items
           mcp__backlog__get_wiki
           mcp__backlog__get_wiki_pages
+          mcp__backlog__get_wikis_count
+          mcp__backlog__list_organizations
+          mcp__github__download_workflow_run_artifact
           mcp__github__get_code_scanning_alert
           mcp__github__get_commit
           mcp__github__get_dependabot_alert
           mcp__github__get_discussion
           mcp__github__get_discussion_comments
           mcp__github__get_file_contents
+          mcp__github__get_global_security_advisory
           mcp__github__get_issue
           mcp__github__get_issue_comments
           mcp__github__get_job_logs
           mcp__github__get_label
           mcp__github__get_latest_release
           mcp__github__get_me
+          mcp__github__get_notification_details
+          mcp__github__get_project
+          mcp__github__get_project_field
+          mcp__github__get_project_item
           mcp__github__get_pull_request
           mcp__github__get_pull_request_diff
           mcp__github__get_pull_request_files
@@ -182,6 +217,8 @@ on:
           mcp__github__get_team_members
           mcp__github__get_teams
           mcp__github__get_workflow_run
+          mcp__github__get_workflow_run_logs
+          mcp__github__get_workflow_run_usage
           mcp__github__issue_read
           mcp__github__list_branches
           mcp__github__list_code_scanning_alerts
@@ -189,19 +226,30 @@ on:
           mcp__github__list_dependabot_alerts
           mcp__github__list_discussion_categories
           mcp__github__list_discussions
+          mcp__github__list_gists
+          mcp__github__list_global_security_advisories
           mcp__github__list_issue_types
           mcp__github__list_issues
+          mcp__github__list_notifications
+          mcp__github__list_org_repository_security_advisories
+          mcp__github__list_project_fields
+          mcp__github__list_project_items
+          mcp__github__list_projects
           mcp__github__list_pull_requests
           mcp__github__list_releases
+          mcp__github__list_repository_security_advisories
           mcp__github__list_secret_scanning_alerts
+          mcp__github__list_starred_repositories
           mcp__github__list_sub_issues
           mcp__github__list_tags
           mcp__github__list_workflow_jobs
+          mcp__github__list_workflow_run_artifacts
           mcp__github__list_workflow_runs
           mcp__github__list_workflows
           mcp__github__pull_request_read
           mcp__github__search_code
           mcp__github__search_issues
+          mcp__github__search_orgs
           mcp__github__search_pull_requests
           mcp__github__search_repositories
           mcp__github__search_users
