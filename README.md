@@ -359,6 +359,18 @@ Allowed tools for Claude Code (newline-separated, replaces default set).
 Mutations such as posting reviews are performed by the kyosei skill
 via its Node.js implementation rather than by Claude directly.
 
+###### Built-in tools
+
+The default lists only the built-in tools that need permission:
+`Bash`, `Read`, `Skill`, `WebFetch`, `WebSearch` and `Write`.
+
+Tools that Claude Code runs without an allow rule,
+such as `Agent`, `Glob` and `Grep`, are omitted because listing them changes nothing.
+`Read` stays because it is what permits reading files outside the working directories,
+the installed plugin files for example.
+
+`Edit` is left out on purpose, since a review does not modify the code.
+
 ###### Bash and Write
 
 The default allows `Bash` without any command restriction, and `Write`.
@@ -369,10 +381,13 @@ Reviewers also write intermediate results to scratch files.
 `node` alone already permits arbitrary code execution,
 so restricting the rest gains little.
 
-Reviewer subagents restrict their own tools in agent frontmatter.
+Reviewer skills list their own tools in frontmatter.
 Note that this is not a boundary:
-the allowed `Agent` tool can also start general-purpose subagents,
-which inherit the same tools as the session that started them.
+the list grants permission rather than restricting it,
+and the subagents the skills run in inherit
+the permission rules of the session that started them.
+The `Agent` tool needs no permission either,
+so the session can start general-purpose subagents at any time.
 
 The runner is disposable, but that protects only the working tree.
 The session can read the process environment,
@@ -395,29 +410,68 @@ fork pull requests in particular.
 
 ###### GitHub MCP
 
-List each GitHub MCP tool individually as `mcp__github__<tool_name>`,
-because claude-code-action only starts the GitHub MCP server
-when a tool name begins with `mcp__github__`
-(the bare `mcp__github` prefix does not work).
+claude-code-action starts
+[github-mcp-server](https://github.com/github/github-mcp-server) v0.17.1,
+and only when a tool name in the list begins with `mcp__github__`.
+The bare `mcp__github` does not start it,
+so keep at least one `mcp__github__<tool_name>` entry when you replace the default.
+
+The default lists every read-only tool of v0.17.1, covering these toolsets:
+
+- Actions
+- Code security
+- Context
+- Dependabot
+- Discussions
+- Gists
+- Issues
+- Notifications
+- Orgs
+- Projects
+- Pull requests
+- Repos
+- Secret protection
+- Security advisories
+- Users
+
+The tools of the dynamic toolset are not listed,
+because the server does not register them the way claude-code-action starts it.
+
+The default also keeps `get_label`, `issue_read` and `pull_request_read`.
+They do not exist in v0.17.1 and match nothing today;
+they are the names later versions use,
+kept so that the default keeps working when claude-code-action updates the server.
 
 ###### Kyosei skill MCP
 
-The default also allows what the bundled plugins need:
-the `Agent` tool and the MCP servers used by the research survey agent.
+The default also allows the MCP servers used by the research survey skill.
 
-- `mcp__backlog__*` (only the read-only tools the survey agent uses)
+- `mcp__backlog__*` (the read-only tools only)
 - `mcp__plugin_nix-tasuke_nixos`
 - `mcp__plugin_research_*`
 
-The `*` here is conceptual shorthand for explanation, not a literal value.
-claude-code-action does not necessarily honor wildcards in `allowed_tools`,
-so the actual default enumerates each tool or server individually
-(for example `mcp__backlog__get_issue` and `mcp__plugin_research_cloudflare`).
+The `*` here is shorthand for explanation.
+Claude Code itself accepts `mcp__<server>__*` as a permission rule,
+but the default enumerates the read-only tools of Backlog one by one
+(for example `mcp__backlog__get_issue`)
+so that the tools that write stay denied.
+The plugin servers only offer read-only tools,
+so they are allowed per server (for example `mcp__plugin_research_cloudflare`).
+
+Tools of MCP servers that ship with a plugin are named
+`mcp__plugin_<plugin>_<server>__<tool>`.
+When the repository under review defines a server with the same URL itself,
+for example in `.mcp.json`,
+Claude Code connects to it only once under the name the repository gave it,
+and the `mcp__plugin_*` name no longer matches.
+Add the other name with `additional_allowed_tools` in that case.
 
 The `mcp__plugin_*` servers ship with the bundled plugins and work out of the box.
 Backlog (`mcp__backlog__*`) is not bundled,
 so it only works if you configure the Backlog MCP server yourself
 (for example via `.mcp.json`).
+The Backlog names cover the read-only tools of
+[backlog-mcp-server](https://github.com/nulab/backlog-mcp-server) up to v0.23.4.
 
 ##### `additional_allowed_tools`
 
@@ -546,21 +600,8 @@ because `runner.environment` is not `self-hosted`.
 
 #### Default allowed tools
 
-Please see the `allowed_tools` section of [action.yml](./action.yml).
-
-The full list of GitHub MCP tools includes all read-only tools from
-[github-mcp-server](https://github.com/github/github-mcp-server) v0.17.1:
-
-- Actions
-- Code
-- Context
-- Dependabot
-- Discussions
-- Issues
-- Pull
-- Repos
-- Secret
-- Users
+Please see the `allowed_tools` section of [action.yml](./action.yml),
+and the [`allowed_tools`](#allowed_tools) input above for how the list is chosen.
 
 To add tools without replacing the defaults, use `additional_allowed_tools`:
 
