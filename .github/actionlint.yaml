@@ -4,3 +4,12 @@ self-hosted-runner:
   labels:
     - ubuntu-26.04
     - ubuntu-26.04-arm
+# actionlintがセルフリポジトリ構文`$/`に未対応なので無視する。
+# https://github.blog/changelog/2026-07-30-reference-same-repository-actions-with-self-repository-syntax
+paths:
+  .github/workflows/kyosei.yml:
+    ignore:
+      - 'reusable workflow call "\$/.+" at "uses" is not following the format'
+  .github/workflows/review.yml:
+    ignore:
+      - 'specifying action "\$/" in invalid format'
