@@ -107,6 +107,13 @@ git ls-remote https://github.com/ncaq/kyosei-action.git 'refs/tags/v2.5.0^{}'
 Do not query `refs/tags/v2.5.0` without `^{}`.
 For annotated tags it returns the tag object SHA, which GitHub Actions cannot resolve.
 
+The Reusable Workflow references the Composite Action
+with the [self-repository syntax](https://github.blog/changelog/2026-07-30-reference-same-repository-actions-with-self-repository-syntax) (`uses: $/`),
+and every other action is pinned to a commit SHA.
+Pinning the Reusable Workflow to a commit SHA therefore pins the Composite Action to the same commit,
+which is intended to satisfy the
+"Require actions to be pinned to a full-length commit SHA" policy.
+
 ## Reusable Workflow
 
 Handles checkout and timeout internally.
@@ -136,6 +143,13 @@ jobs:
     secrets:
       claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
 ```
+
+The Reusable Workflow relies on the self-repository syntax (`uses: $/`),
+which requires GitHub Actions runner 2.336.0 or newer
+and is not available on GitHub Enterprise Server.
+GitHub-hosted runners already satisfy this.
+If you use older self-hosted runners or GitHub Enterprise Server,
+use the Composite Action directly instead.
 
 Most Composite Action inputs can be passed via `with:`.
 The Reusable Workflow additionally accepts the following inputs:
